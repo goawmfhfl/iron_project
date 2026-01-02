@@ -85,14 +85,19 @@ function SignUpForm() {
     }
 
     try {
-      await signUpMutation.mutateAsync({
+      const result = await signUpMutation.mutateAsync({
         email: formData.email,
         password: formData.password,
         nickname: formData.nickname,
         phone: formData.phone,
         gender: formData.gender as Gender,
       });
+      
+      console.log("handleSubmit - 회원가입 성공:", result);
+      // onSuccess에서 리다이렉션을 처리하지만, 혹시 모를 경우를 대비해 여기서도 확인
+      // onSuccess가 먼저 실행되므로 여기는 백업용
     } catch (err) {
+      console.error("handleSubmit - 회원가입 실패:", err);
       if (err instanceof SignUpError) {
         setError(err.message);
       } else {

@@ -97,8 +97,16 @@ export async function signIn(
     });
 
     if (error) {
+      // 이메일 미확인 에러를 한국어로 변환
+      let errorMessage = error.message;
+      if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
+        errorMessage = "이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.";
+      } else if (error.message.includes("Invalid login credentials")) {
+        errorMessage = "이메일 또는 비밀번호가 올바르지 않습니다.";
+      }
+
       return {
-        error: { message: error.message },
+        error: { message: errorMessage },
       };
     }
 

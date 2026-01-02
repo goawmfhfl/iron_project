@@ -33,6 +33,12 @@ export default function AdminLayout({
                 콘텐츠 관리
               </Link>
               <Link
+                href="/admin/users"
+                className="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors mb-2"
+              >
+                회원 관리
+              </Link>
+              <Link
                 href="/admin/settings"
                 className="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
               >

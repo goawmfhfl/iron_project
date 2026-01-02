@@ -27,7 +27,7 @@ export class SignUpError extends Error {
  */
 const signUpUser = async (data: SignUpData): Promise<SignUpResponse> => {
   const { email, password, nickname, phone, gender } = data;
-  const defaultRole: UserRole = "user";
+  const defaultRole: UserRole = "admin";
 
   // 필수 필드 검증
   if (!email) {
@@ -91,6 +91,7 @@ const signUpUser = async (data: SignUpData): Promise<SignUpResponse> => {
       throw new SignUpError("회원가입에 실패했습니다.");
     }
 
+
     return { user: authData.user, session: authData.session };
   } catch (error) {
     if (error instanceof SignUpError) {
@@ -113,16 +114,19 @@ export const useSignUp = () => {
 
   return useMutation({
     mutationFn: signUpUser,
+
     onSuccess: (data) => {
       if (data.session) {
         // 세션이 있는 경우 (이메일 확인이 필요 없는 경우) 홈으로 이동
         router.push("/");
         router.refresh();
       } else {
-        // 이메일 확인이 필요한 경우 로그인 페이지로 이동
-        router.push(
-          "/login?message=회원가입이 완료되었습니다. 이메일을 확인하여 계정을 활성화해주세요."
-        );
+        // 이메일 확인이 필요한 경우 이메일 인증 안내 페이지로 이동
+        const email = data.user?.email || "";
+        const verifyEmailUrl = email
+          ? `/signup/verify-email?email=${encodeURIComponent(email)}`
+          : "/signup/verify-email";
+        router.push(verifyEmailUrl);
       }
     },
     onError: (error: SignUpError) => {

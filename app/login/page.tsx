@@ -6,15 +6,19 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { signIn } from "@/lib/auth/auth";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { useLogin, LoginError } from "@/lib/hooks/useLogin";
 import { validateEmail, validatePassword } from "@/lib/utils/validation";
+
+const REMEMBERED_EMAIL_KEY = "ironArchive_remembered_email";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
+  const loginMutation = useLogin();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [rememberEmail, setRememberEmail] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -27,6 +31,15 @@ function LoginForm() {
     // 회원가입 성공 메시지 표시
     if (searchParams.get("signup") === "success") {
       setSuccessMessage("회원가입이 완료되었습니다. 로그인해주세요.");
+    }
+
+    // 로컬스토리지에서 저장된 이메일 불러오기
+    if (typeof window !== "undefined") {
+      const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+      if (rememberedEmail) {
+        setFormData((prev) => ({ ...prev, email: rememberedEmail }));
+        setRememberEmail(true);
+      }
     }
   }, [searchParams]);
 
@@ -72,26 +85,31 @@ function LoginForm() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const { error: signInError } = await signIn({
+      await loginMutation.mutateAsync({
         email: formData.email,
         password: formData.password,
       });
 
-      if (signInError) {
-        setError(signInError.message);
-        setLoading(false);
-        return;
+      // 로그인 성공 시 아이디 기억하기 처리
+      if (typeof window !== "undefined") {
+        if (rememberEmail) {
+          // 체크박스가 체크된 경우 로컬스토리지에 저장
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+        } else {
+          // 체크박스가 해제된 경우 로컬스토리지에서 삭제
+          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
       }
 
-      // 로그인 성공 시 홈 페이지로 리다이렉트
-      router.push("/");
-      router.refresh();
+      // onSuccess에서 리다이렉션을 처리하지만, 혹시 모를 경우를 대비해 여기서도 확인
+      // onSuccess가 먼저 실행되므로 여기는 백업용
     } catch (err) {
-      setError("알 수 없는 오류가 발생했습니다.");
-      setLoading(false);
+      if (err instanceof LoginError) {
+        setError(err.message);
+      } else {
+        setError("알 수 없는 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -139,6 +157,12 @@ function LoginForm() {
                 autoComplete="current-password"
               />
 
+              <Checkbox
+                label="아이디 기억하기"
+                checked={rememberEmail}
+                onChange={(e) => setRememberEmail(e.target.checked)}
+              />
+
               {error && (
                 <div className="p-3 rounded-lg bg-error-light border border-error text-error text-sm">
                   {error}
@@ -149,9 +173,9 @@ function LoginForm() {
                 type="submit"
                 className="w-full"
                 size="lg"
-                disabled={loading}
+                disabled={loginMutation.isPending}
               >
-                {loading ? "로그인 중..." : "로그인"}
+                {loginMutation.isPending ? "로그인 중..." : "로그인"}
               </Button>
             </form>
 
