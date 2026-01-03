@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -15,7 +15,6 @@ export default function ConsumerLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAdmin = user?.user_metadata?.user_role === "admin";
 
@@ -91,72 +90,8 @@ export default function ConsumerLayout({
 
               {/* 인증 버튼 */}
               <AuthButton />
-
-              {/* 모바일 햄버거 메뉴 */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden w-10 h-10 rounded-lg bg-surface hover:bg-surface-hover flex items-center justify-center transition-colors"
-                aria-label="메뉴 열기"
-              >
-                <svg
-                  className="w-6 h-6 text-text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {mobileMenuOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
             </div>
           </div>
-
-          {/* 모바일 메뉴 */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-border py-4">
-              <nav className="flex flex-col gap-1">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                      pathname === item.href
-                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
-                        : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      window.location.href = "/admin";
-                    }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover text-left transition-colors"
-                  >
-                    어드민 페이지로 이동
-                  </button>
-                )}
-              </nav>
-            </div>
-          )}
         </div>
       </header>
       <main className="w-full">{children}</main>
