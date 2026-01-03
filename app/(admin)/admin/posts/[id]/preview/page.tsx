@@ -160,38 +160,6 @@ export default function PreviewPage() {
               )}
             </div>
 
-            {/* CTA 버튼들 */}
-            {content.cta_buttons && content.cta_buttons.length > 0 && (
-              <div className="px-4 py-6 border-t border-surface-elevated space-y-3">
-                {content.cta_buttons.map((cta) => (
-                  <a
-                    key={cta.id}
-                    href={cta.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    <div className="bg-surface-elevated border border-surface-elevated rounded-lg p-4 hover:bg-surface-hover transition-colors">
-                      {cta.image_url && (
-                        <img
-                          src={cta.image_url}
-                          alt={cta.title}
-                          className="w-full h-auto rounded-lg mb-3"
-                        />
-                      )}
-                      <h3 className="font-semibold text-text-primary mb-1">
-                        {cta.title}
-                      </h3>
-                      {cta.description && (
-                        <p className="text-sm text-text-secondary">
-                          {cta.description}
-                        </p>
-                      )}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -222,7 +222,7 @@ export default function TestPage() {
 
             {!loading && !result && (
               <div className="text-center py-8 text-text-secondary">
-                결과가 없습니다. "다시 호출" 버튼을 클릭하세요.
+                결과가 없습니다. &quot;다시 호출&quot; 버튼을 클릭하세요.
               </div>
             )}
 

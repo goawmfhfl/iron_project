@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ImageUpload } from "@/components/ui/ImageUpload";
-import { CTAButtonSection } from "./CTAButtonSection";
 import { StatusSelect } from "./StatusSelect";
 import type {
   ReadMargnet,
   CreateReadMargnetInput,
   UpdateReadMargnetInput,
-  CTAButton,
   ContentStatus,
 } from "@/lib/types/content";
 
@@ -37,10 +35,6 @@ export function ContentForm({
     status: (initialData?.status || "대기") as ContentStatus,
   });
 
-  const [ctaButtons, setCtaButtons] = useState<CTAButton[]>(
-    initialData?.cta_buttons || []
-  );
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -52,7 +46,6 @@ export function ContentForm({
         notion_url: initialData.notion_url,
         status: initialData.status || "대기",
       });
-      setCtaButtons(initialData.cta_buttons || []);
     }
   }, [initialData]);
 
@@ -77,22 +70,6 @@ export function ContentForm({
       }
     }
 
-    // CTA 버튼 검증
-    ctaButtons.forEach((button, index) => {
-      if (!button.title.trim()) {
-        newErrors[`cta-${index}-title`] = "CTA 버튼 제목을 입력해주세요.";
-      }
-      if (!button.url.trim()) {
-        newErrors[`cta-${index}-url`] = "CTA 버튼 URL을 입력해주세요.";
-      } else {
-        try {
-          new URL(button.url);
-        } catch {
-          newErrors[`cta-${index}-url`] = "올바른 URL 형식을 입력해주세요.";
-        }
-      }
-    });
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -104,12 +81,15 @@ export function ContentForm({
       return;
     }
 
-    const submitData = {
-      ...formData,
-      cta_buttons: ctaButtons,
-    };
+    // 수정 화면에서는 상태 변경이 별도(즉시 반영)로 처리되므로,
+    // 폼 저장 시 status를 함께 보내서 의도치 않게 덮어쓰지 않도록 제외합니다.
+    if (initialData) {
+      const { title, description, thumbnail_url, notion_url } = formData;
+      await onSubmit({ title, description, thumbnail_url, notion_url });
+      return;
+    }
 
-    await onSubmit(submitData);
+    await onSubmit(formData);
   };
 
   return (
@@ -171,23 +151,12 @@ export function ContentForm({
       />
 
       {initialData && (
-        <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
-            상태
-          </label>
-          <StatusSelect
-            contentId={initialData.id}
-            currentStatus={formData.status}
-          />
-        </div>
-      )}
-
-      <CTAButtonSection buttons={ctaButtons} onChange={setCtaButtons} />
-
-      {Object.keys(errors).some((key) => key.startsWith("cta-")) && (
-        <div className="p-3 rounded-lg bg-error-light border border-error text-error text-sm">
-          CTA 버튼 정보를 모두 입력해주세요.
-        </div>
+        <StatusSelect
+          contentId={initialData.id}
+          currentStatus={formData.status}
+          variant="form"
+          label="상태"
+        />
       )}
 
       <div className="flex gap-4 justify-end pt-4 border-t border-surface-elevated">

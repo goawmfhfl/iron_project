@@ -1,100 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUpdateContentStatus } from "@/lib/hooks/useContentStatus";
-import { StatusBadge } from "./StatusBadge";
 import type { ContentStatus } from "@/lib/types/content";
+import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils";
 
 interface StatusSelectProps {
   contentId: string;
   currentStatus: ContentStatus;
   className?: string;
+  variant?: "compact" | "form";
+  label?: string;
 }
 
 export function StatusSelect({
   contentId,
   currentStatus,
   className,
+  variant = "compact",
+  label,
 }: StatusSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const updateStatusMutation = useUpdateContentStatus();
+  const [value, setValue] = useState<ContentStatus>(currentStatus);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const statuses: ContentStatus[] = ["종료", "대기", "오픈"];
+  useEffect(() => {
+    setValue(currentStatus);
+  }, [currentStatus]);
 
-  const handleStatusChange = async (newStatus: ContentStatus) => {
-    if (newStatus === currentStatus) {
-      setIsOpen(false);
-      return;
-    }
+  const statuses: ContentStatus[] = useMemo(() => ["종료", "대기", "오픈"], []);
+  const options = useMemo(
+    () => statuses.map((s) => ({ value: s, label: s })),
+    [statuses]
+  );
 
+  const handleChange = async (newStatus: ContentStatus) => {
+    if (newStatus === value) return;
+    const prev = value;
+    setErrorMessage(null);
+    setValue(newStatus);
     try {
       await updateStatusMutation.mutateAsync({
         id: contentId,
         status: newStatus,
       });
-      setIsOpen(false);
     } catch (error) {
       console.error("상태 변경 실패:", error);
-      alert("상태 변경에 실패했습니다.");
+      setValue(prev);
+      setErrorMessage("상태 변경에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
   return (
-    <div className={cn("relative", className)}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
+    <div className={cn("min-w-[120px]", variant === "compact" && "min-w-[110px]", className)}>
+      <Select
+        label={variant === "form" ? label ?? "상태" : undefined}
+        value={value}
+        options={options}
         disabled={updateStatusMutation.isPending}
-        className="flex items-center gap-2"
-      >
-        <StatusBadge status={currentStatus} />
-        {updateStatusMutation.isPending ? (
-          <span className="text-xs text-text-tertiary">변경 중...</span>
-        ) : (
-          <svg
-            className={cn(
-              "w-4 h-4 text-text-tertiary transition-transform",
-              isOpen && "rotate-180"
-            )}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+        error={errorMessage ?? undefined}
+        onChange={(e) => handleChange(e.target.value as ContentStatus)}
+        className={cn(
+          variant === "compact" && "py-1.5 px-3 text-sm",
+          variant === "form" && "text-sm"
         )}
-      </button>
-
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-full left-0 mt-1 z-20 bg-surface border border-surface-elevated rounded-lg shadow-elevation-2 min-w-[120px]">
-            {statuses.map((status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => handleStatusChange(status)}
-                disabled={updateStatusMutation.isPending}
-                className={cn(
-                  "w-full px-3 py-2 text-left text-sm hover:bg-surface-hover transition-colors first:rounded-t-lg last:rounded-b-lg",
-                  status === currentStatus && "bg-primary-50 dark:bg-primary-900/20"
-                )}
-              >
-                <StatusBadge status={status} />
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      />
     </div>
   );
 }

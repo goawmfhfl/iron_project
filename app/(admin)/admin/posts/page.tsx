@@ -110,6 +110,7 @@ export default function PostsPage() {
                   <StatusSelect
                     contentId={content.id}
                     currentStatus={content.status}
+                    variant="compact"
                   />
                 </div>
               </CardHeader>
@@ -128,9 +129,6 @@ export default function PostsPage() {
                   {content.description}
                 </p>
                 <div className="text-xs text-text-tertiary flex-shrink-0">
-                  <div>
-                    CTA 버튼: {content.cta_buttons?.length || 0}개
-                  </div>
                   <div>
                     생성일:{" "}
                     {new Date(content.created_at).toLocaleDateString("ko-KR")}

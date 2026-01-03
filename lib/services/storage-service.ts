@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase/client";
 
 export interface UploadImageOptions {
   file: File;
-  bucket: "thumbnails" | "cta-images";
+  bucket: "thumbnails";
   folder?: string;
   onProgress?: (progress: number) => void;
 }
@@ -54,7 +54,7 @@ export async function uploadImage(
  * 이미지 삭제
  */
 export async function deleteImage(
-  bucket: "thumbnails" | "cta-images",
+  bucket: "thumbnails",
   path: string
 ): Promise<void> {
   const { error } = await supabase.storage.from(bucket).remove([path]);

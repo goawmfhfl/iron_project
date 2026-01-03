@@ -21,10 +21,7 @@ export async function getAllContents(): Promise<ReadMargnet[]> {
     throw new Error(`컨텐츠 조회 실패: ${error.message}`);
   }
 
-  return (data || []).map((item) => ({
-    ...item,
-    cta_buttons: item.cta_buttons || [],
-  })) as ReadMargnet[];
+  return (data || []) as ReadMargnet[];
 }
 
 /**
@@ -45,10 +42,7 @@ export async function getContentById(id: string): Promise<ReadMargnet | null> {
     throw new Error(`컨텐츠 조회 실패: ${error.message}`);
   }
 
-  return {
-    ...data,
-    cta_buttons: data.cta_buttons || [],
-  } as ReadMargnet;
+  return data as ReadMargnet;
 }
 
 /**
@@ -75,10 +69,7 @@ export async function createContent(
     throw new Error(`컨텐츠 생성 실패: ${error.message}`);
   }
 
-  return {
-    ...data,
-    cta_buttons: data.cta_buttons || [],
-  } as ReadMargnet;
+  return data as ReadMargnet;
 }
 
 /**
@@ -99,10 +90,7 @@ export async function updateContent(
     throw new Error(`컨텐츠 수정 실패: ${error.message}`);
   }
 
-  return {
-    ...data,
-    cta_buttons: data.cta_buttons || [],
-  } as ReadMargnet;
+  return data as ReadMargnet;
 }
 
 /**
@@ -134,9 +122,6 @@ export async function updateContentStatus(
     throw new Error(`컨텐츠 상태 업데이트 실패: ${error.message}`);
   }
 
-  return {
-    ...data,
-    cta_buttons: data.cta_buttons || [],
-  } as ReadMargnet;
+  return data as ReadMargnet;
 }
 

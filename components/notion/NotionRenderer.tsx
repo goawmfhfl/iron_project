@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * NotionRenderer - 컨텐츠 전용 렌더러
+ * 
+ * 이 컴포넌트는 컨텐츠 페이지에서 사용되는 Notion 블록 렌더러입니다.
+ * 향후 커뮤니티 후기 전용, 소셜링 전용 렌더러는 별도 컴포넌트로 분리될 예정입니다.
+ */
+
 import { NotionBlock } from "./NotionBlock";
 import type { NotionBlock as NotionBlockType } from "@/lib/types/notion";
 
@@ -79,4 +86,3 @@ export function NotionRenderer({ blocks, className }: NotionRendererProps) {
     </div>
   );
 }
-

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface ImageUploadProps {
   value?: string | null;
   onChange: (url: string | null) => void;
-  bucket: "thumbnails" | "cta-images";
+  bucket: "thumbnails";
   expectedWidth?: number;
   expectedHeight?: number;
   label?: string;
@@ -62,9 +62,6 @@ export function ImageUpload({
       setUploading(true);
       const { uploadImage } = await import("@/lib/services/storage-service");
       const result = await uploadImage({ file, bucket });
-
-      console.log("result",result);
-      
       onChange(result.url);
       setUploadError(null);
     } catch (err) {

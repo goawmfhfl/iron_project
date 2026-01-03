@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { FixedThemeToggle } from "@/components/ui/FixedThemeToggle";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
 
@@ -28,11 +29,13 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              {children}
+              <FixedThemeToggle />
+            </AuthProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>
     </html>
   );
 }
-

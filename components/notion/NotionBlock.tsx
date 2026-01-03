@@ -1,6 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { extractTextFromRichText } from "@/lib/services/notion-service";
+import { NotionRenderer } from "./NotionRenderer";
+import { renderRichText } from "./renderRichText";
+import { formatNotionPageId } from "@/lib/utils/notion";
+import { PromoCallout } from "./PromoCallout";
 import type { NotionBlock } from "@/lib/types/notion";
 
 interface NotionBlockProps {
@@ -12,53 +17,74 @@ export function NotionBlock({ block }: NotionBlockProps) {
 
   switch (type) {
     case "paragraph":
+      const paragraphText = extractTextFromRichText(block.paragraph?.rich_text);
+
+      if (!paragraphText) {
+        return (
+          <p
+            className="text-base leading-normal mb-4"
+            aria-hidden="true"
+          >
+            {"\u00A0"}
+          </p>
+        );
+      }
+
       return (
-        <p className="text-base text-text-primary leading-relaxed mb-4">
-          {extractTextFromRichText(block.paragraph?.rich_text) || (
-            <span className="text-text-tertiary">빈 문단</span>
-          )}
+        <p className="text-base text-text-primary leading-normal mb-4">
+          {renderRichText(block.paragraph?.rich_text)}
         </p>
       );
 
     case "heading_1":
       return (
-        <h1 className="text-3xl font-bold text-text-primary mb-4 mt-6 first:mt-0">
-          {extractTextFromRichText(block.heading_1?.rich_text)}
+        <h1 className="text-3xl font-bold text-text-primary mb-4 mt-6 first:mt-0 leading-tight">
+          {renderRichText(block.heading_1?.rich_text)}
         </h1>
       );
 
     case "heading_2":
       return (
-        <h2 className="text-2xl font-bold text-text-primary mb-3 mt-5 first:mt-0">
-          {extractTextFromRichText(block.heading_2?.rich_text)}
+        <h2 className="text-2xl font-bold text-text-primary mb-3 mt-5 first:mt-0 leading-tight">
+          {renderRichText(block.heading_2?.rich_text)}
         </h2>
       );
 
     case "heading_3":
       return (
-        <h3 className="text-xl font-semibold text-text-primary mb-2 mt-4 first:mt-0">
-          {extractTextFromRichText(block.heading_3?.rich_text)}
+        <h3 className="text-xl font-semibold text-text-primary mb-2 mt-4 first:mt-0 leading-tight">
+          {renderRichText(block.heading_3?.rich_text)}
         </h3>
       );
 
     case "bulleted_list_item":
       return (
-        <li className="text-base text-text-primary leading-relaxed mb-2 ml-6 list-disc">
-          {extractTextFromRichText(block.bulleted_list_item?.rich_text)}
+        <li className="text-base text-text-primary leading-normal mb-2 ml-6 list-disc">
+          {renderRichText(block.bulleted_list_item?.rich_text)}
         </li>
       );
 
     case "numbered_list_item":
       return (
-        <li className="text-base text-text-primary leading-relaxed mb-2 ml-6 list-decimal">
-          {extractTextFromRichText(block.numbered_list_item?.rich_text)}
+        <li className="text-base text-text-primary leading-normal mb-2 ml-6 list-decimal">
+          {renderRichText(block.numbered_list_item?.rich_text)}
         </li>
       );
 
     case "quote":
       return (
         <blockquote className="border-l-4 border-primary-500 pl-4 py-2 my-4 italic text-text-secondary bg-surface-elevated rounded-r">
-          {extractTextFromRichText(block.quote?.rich_text)}
+          <div>
+            {block.quote?.rich_text && (
+              <p className="mb-2 leading-normal">{renderRichText(block.quote?.rich_text)}</p>
+            )}
+            {/* 중첩된 children 블록 렌더링 */}
+            {block.children && Array.isArray(block.children) && block.children.length > 0 && (
+              <div className="mt-2">
+                <NotionRenderer blocks={block.children} />
+              </div>
+            )}
+          </div>
         </blockquote>
       );
 
@@ -79,12 +105,10 @@ export function NotionBlock({ block }: NotionBlockProps) {
       );
 
     case "image":
-      const imageUrl =
-        block.image?.file?.url ||
-        block.image?.external?.url ||
-        block.image?.file?.expiry_time
-          ? null // 만료된 이미지는 표시하지 않음
-          : null;
+      const imageUrl: string | undefined =
+        block.image?.type === "external"
+          ? block.image?.external?.url
+          : block.image?.file?.url;
 
       if (!imageUrl) {
         return (
@@ -94,15 +118,23 @@ export function NotionBlock({ block }: NotionBlockProps) {
         );
       }
 
+      const imageCaption = block.image?.caption && block.image.caption.length > 0
+        ? extractTextFromRichText(block.image.caption)
+        : "이미지";
+
       return (
         <div className="my-4">
-          <img
-            src={imageUrl}
-            alt={block.image?.caption?.[0]?.plain_text || "이미지"}
-            className="w-full h-auto rounded-lg border border-surface-elevated"
-          />
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-surface-elevated bg-surface-elevated">
+            <Image
+              src={imageUrl}
+              alt={imageCaption}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 896px"
+            />
+          </div>
           {block.image?.caption && block.image.caption.length > 0 && (
-            <p className="text-sm text-text-tertiary text-center mt-2">
+            <p className="text-sm text-text-tertiary text-center mt-2 leading-normal">
               {extractTextFromRichText(block.image.caption)}
             </p>
           )}
@@ -113,31 +145,99 @@ export function NotionBlock({ block }: NotionBlockProps) {
       return <hr className="my-6 border-surface-elevated" />;
 
     case "callout":
+      // green_background 콜아웃은 "홍보 카드" UI로 커스텀 렌더링
+      if (block.callout?.color === "green_background") {
+        return <PromoCallout block={block} />;
+      }
       return (
-        <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-4 my-4">
+        <div className="border border-surface-elevated rounded-lg p-4 my-4">
           {block.callout?.icon && (
             <div className="text-2xl mb-2">{block.callout.icon.emoji}</div>
           )}
-          <p className="text-base text-text-primary">
-            {extractTextFromRichText(block.callout?.rich_text)}
-          </p>
+          <div className="text-base text-text-primary leading-normal">
+            {block.callout?.rich_text && (
+              <p className="mb-2">{renderRichText(block.callout?.rich_text)}</p>
+            )}
+            {/* 중첩된 children 블록 렌더링 */}
+            {block.children && Array.isArray(block.children) && block.children.length > 0 && (
+              <div className="mt-2">
+                <NotionRenderer blocks={block.children} />
+              </div>
+            )}
+          </div>
         </div>
       );
 
     case "toggle":
       return (
         <details className="my-4">
-          <summary className="cursor-pointer text-base font-medium text-text-primary mb-2">
-            {extractTextFromRichText(block.toggle?.rich_text)}
+          <summary className="cursor-pointer text-base font-medium text-text-primary mb-2 leading-normal">
+            {renderRichText(block.toggle?.rich_text)}
           </summary>
           <div className="ml-4 mt-2">
-            {/* Toggle 내부 블록은 NotionRenderer에서 처리 */}
+            {/* Toggle 내부 블록 렌더링 */}
+            {block.children && Array.isArray(block.children) && block.children.length > 0 && (
+              <NotionRenderer blocks={block.children} />
+            )}
           </div>
         </details>
       );
 
+    case "child_page": {
+      // Notion에서 '페이지 카드'처럼 보이는 블록
+      const title = block.child_page?.title ?? "페이지";
+      // child_page 블록의 id 자체가 이동해야 할 pageId 입니다.
+      const pageId = formatNotionPageId(block.id);
+      const href = `/notion?pageUrl=${encodeURIComponent(`/${pageId}`)}`;
+
+      return (
+        <a
+          href={href}
+          className="my-4 flex items-center gap-3 rounded-lg border border-surface-elevated bg-surface-elevated/30 px-4 py-3 hover:bg-surface-hover transition-colors"
+        >
+          <span className="text-xl leading-none">📄</span>
+          <span className="font-semibold text-text-primary underline underline-offset-4">
+            {title}
+          </span>
+        </a>
+      );
+    }
+
+    case "link_to_page": {
+      // 다른 페이지/DB로 연결되는 링크 블록
+      const pageIdRaw =
+        block.link_to_page?.page_id ??
+        block.link_to_page?.database_id ??
+        null;
+
+      if (!pageIdRaw) {
+        return (
+          <div className="my-2 text-sm text-text-tertiary italic">
+            [link_to_page 정보를 해석할 수 없습니다]
+          </div>
+        );
+      }
+
+      const pageId = formatNotionPageId(pageIdRaw);
+      const href = `/notion?pageUrl=${encodeURIComponent(`/${pageId}`)}`;
+      const label =
+        block.link_to_page?.type === "database_id" ? "데이터베이스" : "페이지";
+      const icon = block.link_to_page?.type === "database_id" ? "🗂️" : "📄";
+
+      return (
+        <a
+          href={href}
+          className="my-4 flex items-center gap-3 rounded-lg border border-surface-elevated bg-surface-elevated/30 px-4 py-3 hover:bg-surface-hover transition-colors"
+        >
+          <span className="text-xl leading-none">{icon}</span>
+          <span className="font-semibold text-text-primary underline underline-offset-4">
+            {label}로 이동
+          </span>
+        </a>
+      );
+    }
+
     default:
-      // 지원하지 않는 블록 타입
       return (
         <div className="my-2 text-sm text-text-tertiary italic">
           [지원하지 않는 블록 타입: {type}]
@@ -145,4 +245,3 @@ export function NotionBlock({ block }: NotionBlockProps) {
       );
   }
 }
-

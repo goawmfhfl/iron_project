@@ -1,11 +1,3 @@
-export interface CTAButton {
-  id: string;
-  title: string;
-  description: string;
-  image_url: string;
-  url: string;
-}
-
 export type ContentStatus = "종료" | "대기" | "오픈";
 
 export interface ReadMargnet {
@@ -14,7 +6,6 @@ export interface ReadMargnet {
   description: string;
   thumbnail_url: string | null;
   notion_url: string;
-  cta_buttons: CTAButton[];
   status: ContentStatus;
   created_at: string;
   updated_at: string;
@@ -26,7 +17,6 @@ export interface CreateReadMargnetInput {
   description: string;
   thumbnail_url?: string | null;
   notion_url: string;
-  cta_buttons: CTAButton[];
   status?: ContentStatus;
 }
 
@@ -35,7 +25,6 @@ export interface UpdateReadMargnetInput {
   description?: string;
   thumbnail_url?: string | null;
   notion_url?: string;
-  cta_buttons?: CTAButton[];
   status?: ContentStatus;
 }
 

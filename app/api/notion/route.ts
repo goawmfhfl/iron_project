@@ -137,6 +137,51 @@ function extractPageTitle(page: any): string | undefined {
   return undefined;
 }
 
+/**
+ * 중첩된 블록들을 평탄화하여 순서대로 배열로 변환
+ * callout, toggle 같은 컨테이너 블록은 그대로 유지하고 내부 children은 유지
+ * 다른 블록들의 children은 평탄화하여 순서대로 배치
+ */
+function flattenBlocks(blocks: NotionBlock[]): NotionBlock[] {
+  const flattened: NotionBlock[] = [];
+
+  for (const block of blocks) {
+    // 컨테이너 블록 타입들 (children을 내부에 유지해야 하는 블록)
+    // 이 블록들은 구조를 유지하되, 내부 children은 NotionBlock 컴포넌트에서 렌더링
+    const containerTypes = [
+      "callout",
+      "toggle",
+      "quote",
+      "column_list",
+      "column",
+      "synced_block",
+      // Notion에서 '페이지 카드'처럼 보여야 하는 특수 타입들
+      // 이 타입들은 children을 부모 문서에 평탄화해버리면 UX가 깨집니다.
+      "child_page",
+      "child_database",
+      "link_to_page",
+    ];
+    
+    if (containerTypes.includes(block.type)) {
+      // 컨테이너 블록은 그대로 추가 (children은 유지됨)
+      flattened.push(block);
+    } else {
+      // 일반 블록은 평탄화
+      // children 속성을 제거한 블록을 추가
+      const { children, ...blockWithoutChildren } = block;
+      flattened.push(blockWithoutChildren as NotionBlock);
+      
+      // children이 있으면 재귀적으로 평탄화하여 순서대로 추가
+      if (children && Array.isArray(children) && children.length > 0) {
+        const childBlocks = flattenBlocks(children);
+        flattened.push(...childBlocks);
+      }
+    }
+  }
+
+  return flattened;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -184,11 +229,14 @@ export async function GET(request: NextRequest) {
       const title = extractPageTitle(page);
 
       // 블록들 가져오기
-      const blocks = await fetchPageBlocks(pageId, headers);
+      const rawBlocks = await fetchPageBlocks(pageId, headers);
+
+      // 블록들을 평탄화하여 순서대로 렌더링 가능하도록 변환
+      const flattenedBlocks = flattenBlocks(rawBlocks);
 
       return NextResponse.json({
         title,
-        blocks,
+        blocks: flattenedBlocks,
       });
     }
 
