@@ -106,6 +106,7 @@ export default function TestPage() {
 
   useEffect(() => {
     fetchNotionData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { FixedThemeToggle } from "@/components/ui/FixedThemeToggle";
+import { Modal } from "@/components/ui/Modal";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             <AuthProvider>
               {children}
               <FixedThemeToggle />
+              <Modal />
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>

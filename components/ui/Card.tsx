@@ -1,4 +1,4 @@
-import { HTMLAttributes, ReactNode } from "react";
+import { forwardRef, HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -6,14 +6,13 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   elevation?: 0 | 1 | 2 | 3 | 4 | 5;
 }
 
-export function Card({
-  children,
-  elevation = 1,
-  className,
-  ...props
-}: CardProps) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
+  { children, elevation = 1, className, ...props },
+  ref
+) {
   return (
     <div
+      ref={ref}
       className={cn(
         "bg-surface rounded-lg border border-border",
         `shadow-elevation-${elevation}`,
@@ -24,7 +23,8 @@ export function Card({
       {children}
     </div>
   );
-}
+});
+Card.displayName = "Card";
 
 interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;

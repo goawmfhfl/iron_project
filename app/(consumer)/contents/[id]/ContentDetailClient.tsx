@@ -2,53 +2,63 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getContentById } from "@/lib/services/content-service";
+import { getNotionContentByPageId } from "@/lib/services/notion-service.server";
 import { getNotionPageContent } from "@/lib/services/notion-service";
 import { NotionRenderer } from "@/components/notion/NotionRenderer";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
 import { ContentSkeleton } from "@/components/consumer/ContentSkeleton";
-import type { ReadMargnet } from "@/lib/types/content";
+import type { NotionContent } from "@/lib/types/notion-content";
 import type { NotionPageContent } from "@/lib/types/notion";
+import { formatNotionPageId } from "@/lib/utils/notion";
 
 interface ContentDetailClientProps {
-  id: string;
-  initialContent?: ReadMargnet | null;
+  pageId: string;
+  initialContent?: NotionContent | null;
   initialNotionContent?: NotionPageContent | null;
 }
 
 export function ContentDetailClient({
-  id,
+  pageId,
   initialContent,
   initialNotionContent,
 }: ContentDetailClientProps) {
   const router = useRouter();
 
   // 컨텐츠 데이터 가져오기 (하이드레이션된 데이터 사용)
-  const contentQuery = useQuery<ReadMargnet | null>({
-    queryKey: ["read_margnet", id],
-    queryFn: () => getContentById(id),
-    enabled: !!id,
+  const contentQuery = useQuery<NotionContent | null>({
+    queryKey: ["notion_content", pageId],
+    queryFn: async () => {
+      // 클라이언트에서는 서버 함수를 직접 호출할 수 없으므로 API를 통해 호출
+      // pageId는 이미 하이픈이 포함된 형식이므로 그대로 사용
+      const pageIdForUrl = pageId.replace(/-/g, "");
+      const response = await fetch(`/api/notion/content/${pageIdForUrl}`);
+      if (!response.ok) {
+        throw new Error("컨텐츠를 불러올 수 없습니다.");
+      }
+      return response.json();
+    },
+    enabled: !!pageId,
     initialData: initialContent ?? undefined,
     staleTime: 60 * 1000, // 1분
   });
 
   // Notion 페이지 내용 가져오기 (하이드레이션된 데이터 사용)
   const notionQuery = useQuery({
-    queryKey: ["notion", contentQuery.data?.notion_url],
+    queryKey: ["notion_page", contentQuery.data?.url],
     queryFn: () => {
-      if (!contentQuery.data?.notion_url) {
+      if (!contentQuery.data?.url) {
         throw new Error("Notion URL이 없습니다.");
       }
-      return getNotionPageContent(contentQuery.data.notion_url);
+      return getNotionPageContent(contentQuery.data.url);
     },
-    enabled: !!contentQuery.data?.notion_url,
+    enabled: !!contentQuery.data?.url,
     initialData: initialNotionContent ?? undefined,
     staleTime: 60 * 1000, // 1분
   });
 
-  // 초기 데이터가 없을 때만 스켈레톤 표시 (서버에서 렌더링되었으면 거의 표시되지 않음)
+  // 초기 데이터가 없을 때만 스켈레톤 표시
   if (contentQuery.isLoading && !initialContent) {
     return <ContentSkeleton />;
   }
@@ -73,6 +83,8 @@ export function ContentDetailClient({
   }
 
   const content = contentQuery.data;
+  // URL에서 사용할 페이지 ID (하이픈 제거)
+  const pageIdForUrl = pageId.replace(/-/g, "");
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -87,11 +99,11 @@ export function ContentDetailClient({
           ← 목록으로
         </Button>
 
-        {/* 썸네일 */}
-        {content.thumbnail_url && (
+        {/* 썸네일 (커버 이미지) */}
+        {content.coverImage && (
           <div className="relative w-full aspect-[16/9] mb-8 rounded-lg overflow-hidden bg-transparent">
             <Image
-              src={content.thumbnail_url}
+              src={content.coverImage}
               alt={content.title}
               fill
               className="object-cover"
@@ -101,24 +113,17 @@ export function ContentDetailClient({
           </div>
         )}
 
-        {/* 제목 및 설명 */}
+        {/* 제목 (Description은 제거) */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4 leading-tight">
             <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-3 py-2 rounded-lg">
               {content.title}
             </span>
           </h1>
-          {content.description && (
-            <p className="text-lg text-text-secondary leading-7">
-              {content.description}
-            </p>
-          )}
         </div>
 
         {/* Notion 컨텐츠 */}
-        {notionQuery.isLoading && !initialNotionContent && (
-          <ContentSkeleton />
-        )}
+        {notionQuery.isLoading && !initialNotionContent && <ContentSkeleton />}
 
         {notionQuery.isError && (
           <Card elevation={1}>
@@ -140,7 +145,10 @@ export function ContentDetailClient({
 
         {notionQuery.isSuccess && notionQuery.data && (
           <div className="prose prose-sm max-w-none dark:prose-invert">
-            <NotionRenderer blocks={notionQuery.data.blocks || []} contentId={id} />
+            <NotionRenderer
+              blocks={notionQuery.data.blocks || []}
+              contentId={pageIdForUrl}
+            />
           </div>
         )}
       </div>

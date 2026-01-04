@@ -15,6 +15,16 @@ const nextConfig = {
       // Notion 이미지(secure.notion-static / S3 signed url 등) 최적화 허용
       {
         protocol: 'https',
+        hostname: 'www.notion.so',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'notion.so',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '**.notion-static.com',
         pathname: '/**',
       },

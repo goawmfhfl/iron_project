@@ -1,6 +1,12 @@
 import { Client } from "@notionhq/client";
 import { extractNotionPageId, formatNotionPageId } from "@/lib/utils/notion";
 import type { NotionBlock, NotionPageContent } from "@/lib/types/notion";
+import type {
+  NotionContent,
+  NotionContentsQueryParams,
+  NotionContentsQueryResult,
+} from "@/lib/types/notion-content";
+import { parseNotionPageToContent } from "@/lib/types/notion-content";
 
 const NOTION_API_BASE = "https://api.notion.com/v1";
 
@@ -173,6 +179,299 @@ function flattenBlocks(blocks: NotionBlock[]): NotionBlock[] {
   }
 
   return flattened;
+}
+
+type NotionPropertyInfo = { name: string; type: string };
+
+// DB 스키마 캐시 (메모리 기반, 서버 재시작 시 초기화)
+// key: databaseId
+// value: Map<lowerPropertyName, { name, type }>
+const propertyInfoCache = new Map<string, Map<string, NotionPropertyInfo>>();
+
+/**
+ * Notion 데이터베이스 스키마를 가져와 캐시에 적재
+ */
+async function ensureDatabaseSchemaCached(
+  databaseId: string,
+  headers: HeadersInit
+): Promise<Map<string, NotionPropertyInfo> | null> {
+  try {
+    const existing = propertyInfoCache.get(databaseId);
+    if (existing && existing.size > 0) return existing;
+
+    // 데이터베이스 스키마 가져오기
+    const dbResponse = await fetch(`${NOTION_API_BASE}/databases/${databaseId}`, {
+      method: "GET",
+      headers,
+      next: { revalidate: 3600 },
+    });
+
+    if (!dbResponse.ok) {
+      return null;
+    }
+
+    const dbData = await dbResponse.json();
+    const properties = dbData.properties || {};
+
+    const map = new Map<string, NotionPropertyInfo>();
+    for (const [key, value] of Object.entries(properties)) {
+      const v = value as any;
+      const type = typeof v?.type === "string" ? v.type : "unknown";
+      map.set(key.toLowerCase(), { name: key, type });
+    }
+
+    propertyInfoCache.set(databaseId, map);
+    return map;
+  } catch (error) {
+    console.error("ensureDatabaseSchemaCached error:", error);
+    return null;
+  }
+}
+
+/**
+ * Notion 데이터베이스에서 속성 정보 찾기 (대소문자 무시, 캐시 사용)
+ */
+async function findPropertyInfo(
+  databaseId: string,
+  headers: HeadersInit,
+  targetName: string
+): Promise<NotionPropertyInfo | null> {
+  const schema = await ensureDatabaseSchemaCached(databaseId, headers);
+  if (!schema) return null;
+  return schema.get(targetName.toLowerCase()) ?? null;
+}
+
+function buildEqualsFilter(info: NotionPropertyInfo, value: string): any | null {
+  const v = value?.trim?.() ?? "";
+  if (!v) return null;
+
+  // Notion 속성 타입에 따라 필터 키가 다름
+  if (info.type === "status") {
+    return { property: info.name, status: { equals: v } };
+  }
+  if (info.type === "select") {
+    return { property: info.name, select: { equals: v } };
+  }
+  if (info.type === "multi_select") {
+    return { property: info.name, multi_select: { contains: v } };
+  }
+
+  // fallback: select로 시도 (스키마가 unknown인 경우)
+  return { property: info.name, select: { equals: v } };
+}
+
+/**
+ * Notion 데이터베이스에서 컨텐츠 목록 조회 (서버 사이드)
+ */
+export async function getNotionContentsDatabase(
+  params: NotionContentsQueryParams = {}
+): Promise<NotionContentsQueryResult> {
+  try {
+    const databaseId = process.env.NOTION_CONTENTS_DATABASE_ID;
+    if (!databaseId) {
+      throw new Error("NOTION_CONTENTS_DATABASE_ID가 설정되지 않았습니다.");
+    }
+
+    const headers = getNotionHeaders();
+    const pageSize = params.pageSize || 10;
+
+    // 필터 조건 구성
+    const filters: any[] = [];
+
+    // Status 필터
+    if (params.status && params.status.length > 0) {
+      const statusInfo = await findPropertyInfo(databaseId, headers, "status");
+      if (statusInfo) {
+        const values = params.status.filter(Boolean);
+        if (values.length === 1) {
+          const f = buildEqualsFilter(statusInfo, values[0]);
+          if (f) filters.push(f);
+        } else if (values.length > 1) {
+          const ors = values
+            .map((s) => buildEqualsFilter(statusInfo, s))
+            .filter(Boolean);
+          if (ors.length > 0) {
+            filters.push({ or: ors });
+          }
+        }
+      }
+    }
+
+    // firstCategory 필터 (빈 문자열 체크 추가)
+    if (params.firstCategory && params.firstCategory.trim() !== "") {
+      const firstInfo = await findPropertyInfo(databaseId, headers, "firstCategory");
+      if (firstInfo) {
+        const f = buildEqualsFilter(firstInfo, params.firstCategory);
+        if (f) filters.push(f);
+      }
+    }
+
+    // secondCategory 필터 (빈 문자열 체크 추가)
+    if (params.secondCategory && params.secondCategory.trim() !== "") {
+      const secondInfo = await findPropertyInfo(databaseId, headers, "secondCategory");
+      if (secondInfo) {
+        const f = buildEqualsFilter(secondInfo, params.secondCategory);
+        if (f) filters.push(f);
+      }
+    }
+
+    const queryBody: any = {
+      page_size: pageSize,
+    };
+
+    if (filters.length > 0) {
+      queryBody.filter = filters.length === 1 ? filters[0] : { and: filters };
+    }
+
+    if (params.startCursor) {
+      queryBody.start_cursor = params.startCursor;
+    }
+
+    const queryResponse = await fetch(
+      `${NOTION_API_BASE}/databases/${databaseId}/query`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(queryBody),
+        next: { revalidate: 3600 }, // 1시간 캐시
+      }
+    );
+
+    if (!queryResponse.ok) {
+      const errorData = await queryResponse.json().catch(() => ({}));
+      console.error("Notion database query error:", errorData);
+      throw new Error(
+        `Notion 데이터베이스 쿼리 실패: ${errorData.message || queryResponse.statusText}`
+      );
+    }
+
+    const data = await queryResponse.json();
+    const pages = data.results || [];
+
+    // Notion 페이지를 NotionContent로 변환
+    const contents: NotionContent[] = [];
+    for (const page of pages) {
+      const content = parseNotionPageToContent(page);
+      if (content) {
+        contents.push(content);
+      }
+    }
+
+    return {
+      contents,
+      hasMore: data.has_more || false,
+      nextCursor: data.next_cursor || null,
+    };
+  } catch (error) {
+    console.error("getNotionContentsDatabase error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Notion 데이터베이스에서 카테고리 목록 조회 (서버 사이드)
+ */
+export async function getNotionCategories(): Promise<{
+  firstCategories: string[];
+  secondCategories: Record<string, string[]>;
+}> {
+  try {
+    const databaseId = process.env.NOTION_CONTENTS_DATABASE_ID;
+    if (!databaseId) {
+      throw new Error("NOTION_CONTENTS_DATABASE_ID가 설정되지 않았습니다.");
+    }
+
+    const headers = getNotionHeaders();
+
+    // 모든 컨텐츠 조회 (카테고리 추출용)
+    const queryResponse = await fetch(
+      `${NOTION_API_BASE}/databases/${databaseId}/query`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          page_size: 100,
+        }),
+        next: { revalidate: 3600 }, // 1시간 캐시
+      }
+    );
+
+    if (!queryResponse.ok) {
+      const errorData = await queryResponse.json().catch(() => ({}));
+      throw new Error(
+        `Notion 데이터베이스 쿼리 실패: ${errorData.message || queryResponse.statusText}`
+      );
+    }
+
+    const data = await queryResponse.json();
+    const pages = data.results || [];
+
+    const firstCategoriesSet = new Set<string>();
+    const secondCategoriesMap = new Map<string, Set<string>>();
+
+    for (const page of pages) {
+      const content = parseNotionPageToContent(page);
+      if (!content) continue;
+
+      if (content.firstCategory) {
+        firstCategoriesSet.add(content.firstCategory);
+
+        if (content.secondCategory) {
+          if (!secondCategoriesMap.has(content.firstCategory)) {
+            secondCategoriesMap.set(content.firstCategory, new Set());
+          }
+          secondCategoriesMap.get(content.firstCategory)!.add(content.secondCategory);
+        }
+      }
+    }
+
+    const secondCategories: Record<string, string[]> = {};
+    for (const [firstCategory, secondSet] of secondCategoriesMap.entries()) {
+      secondCategories[firstCategory] = Array.from(secondSet).sort();
+    }
+
+    return {
+      firstCategories: Array.from(firstCategoriesSet).sort(),
+      secondCategories,
+    };
+  } catch (error) {
+    console.error("getNotionCategories error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Notion 페이지 ID로 컨텐츠 조회 (서버 사이드)
+ */
+export async function getNotionContentByPageId(
+  pageId: string
+): Promise<NotionContent | null> {
+  try {
+    const headers = getNotionHeaders();
+    const formattedPageId = formatNotionPageId(pageId);
+
+    const pageResponse = await fetch(`${NOTION_API_BASE}/pages/${formattedPageId}`, {
+      method: "GET",
+      headers,
+      next: { revalidate: 3600 }, // 1시간 캐시
+    });
+
+    if (!pageResponse.ok) {
+      if (pageResponse.status === 404) {
+        return null;
+      }
+      const errorData = await pageResponse.json().catch(() => ({}));
+      throw new Error(
+        `Notion 페이지 조회 실패: ${errorData.message || pageResponse.statusText}`
+      );
+    }
+
+    const page = await pageResponse.json();
+    return parseNotionPageToContent(page);
+  } catch (error) {
+    console.error("getNotionContentByPageId error:", error);
+    throw error;
+  }
 }
 
 /**
