@@ -1,12 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/server";
 import type { ReadMargnet } from "@/lib/types/content";
 
 /**
- * 모든 컨텐츠 조회 (서버 사이드)
+ * 모든 컨텐츠 조회 (서버 사이드, 정적 생성용)
  */
 export async function getAllContents(): Promise<ReadMargnet[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
     
     const { data, error } = await supabase
       .from("read_margnet")
@@ -26,7 +26,7 @@ export async function getAllContents(): Promise<ReadMargnet[]> {
 }
 
 /**
- * 컨텐츠 ID로 조회 (서버 사이드)
+ * 컨텐츠 ID로 조회 (서버 사이드, 정적 생성용)
  */
 export async function getContentById(id: string): Promise<ReadMargnet | null> {
   try {
@@ -34,7 +34,7 @@ export async function getContentById(id: string): Promise<ReadMargnet | null> {
       throw new Error("유효하지 않은 컨텐츠 ID입니다.");
     }
 
-    const supabase = await createClient();
+    const supabase = createStaticClient();
     
     const { data, error } = await supabase
       .from("read_margnet")
