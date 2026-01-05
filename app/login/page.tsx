@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { useLogin, LoginError } from "@/lib/hooks/useLogin";
 import { validateEmail, validatePassword } from "@/lib/utils/validation";
 
-const REMEMBERED_EMAIL_KEY = "ironArchive_remembered_email";
+const REMEMBERED_EMAIL_KEY = "ironProject_remembered_email";
 
 function LoginForm() {
   const router = useRouter();
@@ -122,7 +122,7 @@ function LoginForm() {
               로그인
             </h1>
             <p className="text-center text-sm text-text-secondary mt-2">
-              ironArchive에 다시 오신 것을 환영합니다
+              ironProject에 다시 오신 것을 환영합니다
             </p>
           </CardHeader>
           <CardContent>

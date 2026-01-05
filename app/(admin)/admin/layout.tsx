@@ -29,7 +29,7 @@ export default function AdminLayout({
           <div className="flex flex-col flex-grow bg-surface border-r border-surface-elevated">
             <div className="flex items-center h-16 flex-shrink-0 px-6 border-b border-surface-elevated">
               <h1 className="text-xl font-bold text-text-primary">
-                ironArchive
+                ironProject
               </h1>
               <span className="ml-2 text-sm text-text-secondary">Admin</span>
             </div>
@@ -66,7 +66,7 @@ export default function AdminLayout({
                 <div className="flex items-center justify-between h-16 px-6 border-b border-surface-elevated">
                   <div className="flex items-center">
                     <h1 className="text-xl font-bold text-text-primary">
-                      ironArchive
+                      ironProject
                     </h1>
                     <span className="ml-2 text-sm text-text-secondary">Admin</span>
                   </div>

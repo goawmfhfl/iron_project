@@ -8,7 +8,7 @@ export default function AdminDashboard() {
           관리자 대시보드
         </h1>
         <p className="text-text-secondary">
-          ironArchive 관리자 페이지에 오신 것을 환영합니다.
+          ironProject 관리자 페이지에 오신 것을 환영합니다.
         </p>
       </div>
 

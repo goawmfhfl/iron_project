@@ -121,7 +121,7 @@ function SignUpForm() {
               회원가입
             </h1>
             <p className="text-center text-sm text-text-secondary mt-2">
-              ironArchive에 오신 것을 환영합니다
+              ironProject에 오신 것을 환영합니다
             </p>
           </CardHeader>
           <CardContent>

@@ -6,7 +6,14 @@ import type {
   NotionContentsQueryParams,
   NotionContentsQueryResult,
 } from "@/lib/types/notion-content";
-import { parseNotionPageToContent } from "@/lib/types/notion-content";
+import { parseNotionPageToContent, extractCoverImage, extractTextFromProperty } from "@/lib/types/notion-content";
+import type {
+  SocialingThumbnail,
+  Socialing,
+  SocialingStatus,
+  SocialingType,
+  EventDate,
+} from "@/lib/types/socialing";
 
 const NOTION_API_BASE = "https://api.notion.com/v1";
 
@@ -525,6 +532,322 @@ export async function getNotionPageContent(
     };
   } catch (error) {
     console.error("getNotionPageContent error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Notion 페이지 속성에서 숫자 추출
+ */
+function extractNumberFromProperty(property: any): number | null {
+  if (!property) return null;
+
+  if (property.type === "number") {
+    return property.number ?? null;
+  }
+
+  return null;
+}
+
+/**
+ * Notion 페이지 속성에서 URL 추출
+ */
+function extractUrlFromProperty(property: any): string | null {
+  if (!property) return null;
+
+  if (property.type === "url") {
+    return property.url || null;
+  }
+
+  return null;
+}
+
+/**
+ * 날짜 문자열에 시간이 포함되어 있는지 확인
+ */
+function hasTime(dateString: string): boolean {
+  return dateString.includes("T") && dateString.split("T")[1]?.length > 0;
+}
+
+/**
+ * Notion 페이지 속성에서 날짜 범위 추출
+ */
+function extractDateRangeFromProperty(property: any): EventDate | null {
+  if (!property || property.type !== "date" || !property.date) {
+    return null;
+  }
+
+  const date = property.date;
+  const start = date.start || null;
+  const end = date.end || null;
+
+  if (!start) return null;
+
+  return {
+    start,
+    end,
+    hasStartTime: start ? hasTime(start) : false,
+    hasEndTime: end ? hasTime(end) : false,
+  };
+}
+
+/**
+ * Notion 페이지를 SocialingThumbnail로 변환
+ */
+function parseNotionPageToThumbnail(page: any): SocialingThumbnail | null {
+  if (!page || !page.id) return null;
+
+  const pageId = page.id;
+  let order = 0;
+  let status: SocialingStatus | null = null;
+  let url: string | null = null;
+
+  for (const [key, value] of Object.entries(page.properties || {})) {
+    const prop = value as any;
+
+    // order 찾기 (number 타입)
+    if (key.toLowerCase() === "order" && prop.type === "number") {
+      order = prop.number ?? 0;
+    }
+
+    // status 찾기
+    if (key.toLowerCase() === "status" && prop.type === "select") {
+      status = (extractTextFromProperty(prop) as SocialingStatus) || null;
+    }
+
+    // url 찾기
+    if (key.toLowerCase() === "url" && prop.type === "url") {
+      url = extractUrlFromProperty(prop);
+    }
+  }
+
+  if (status === null) return null;
+
+  const coverImage = extractCoverImage(page);
+
+  return {
+    pageId,
+    order,
+    status,
+    url,
+    coverImage,
+  };
+}
+
+/**
+ * Notion 페이지를 Socialing으로 변환
+ */
+function parseNotionPageToSocialing(page: any): Socialing | null {
+  if (!page || !page.id) return null;
+
+  const pageId = page.id;
+  const url = page.url || `https://notion.so/${pageId.replace(/-/g, "")}`;
+
+  // 제목 추출
+  let title = "";
+  for (const [key, value] of Object.entries(page.properties || {})) {
+    const prop = value as any;
+    if (prop.type === "title" && prop.title) {
+      title = extractTextFromProperty(prop) || "";
+      break;
+    }
+  }
+
+  if (!title) return null;
+
+  // 속성 추출
+  let description: string | null = null;
+  let status: SocialingStatus | null = null;
+  let type: SocialingType | null = null;
+  let eventDate: EventDate | null = null;
+  let participationFee: number | null = null;
+
+  for (const [key, value] of Object.entries(page.properties || {})) {
+    const prop = value as any;
+
+    // description 찾기
+    if (key.toLowerCase() === "description" && prop.type === "rich_text") {
+      description = extractTextFromProperty(prop);
+    }
+
+    // status 찾기
+    if (key.toLowerCase() === "status" && prop.type === "select") {
+      status = (extractTextFromProperty(prop) as SocialingStatus) || null;
+    }
+
+    // type 찾기
+    if (key.toLowerCase() === "type" && prop.type === "select") {
+      type = (extractTextFromProperty(prop) as SocialingType) || null;
+    }
+
+    // event_date 찾기
+    if (
+      (key.toLowerCase() === "event_date" ||
+        key.toLowerCase() === "eventdate") &&
+      prop.type === "date"
+    ) {
+      eventDate = extractDateRangeFromProperty(prop);
+    }
+
+    // participation_fee 찾기
+    if (
+      (key.toLowerCase() === "participation_fee" ||
+        key.toLowerCase() === "participationfee") &&
+      prop.type === "number"
+    ) {
+      participationFee = extractNumberFromProperty(prop);
+    }
+  }
+
+  const coverImage = extractCoverImage(page);
+  const createdAt = page.created_time || new Date().toISOString();
+  const updatedAt = page.last_edited_time || createdAt;
+
+  return {
+    pageId,
+    title,
+    description,
+    status: (status || "PENDING") as SocialingStatus,
+    type: (type || "SOCIALING") as SocialingType,
+    eventDate,
+    participationFee,
+    coverImage,
+    createdAt,
+    updatedAt,
+  };
+}
+
+/**
+ * 소셜링 썸네일 목록 조회 (서버 사이드)
+ */
+export async function getSocialingThumbnails(): Promise<
+  SocialingThumbnail[]
+> {
+  try {
+    const databaseId = process.env.NOTION_SOCIALING_THUMBNAIL_DATABASE_ID;
+    if (!databaseId) {
+      throw new Error(
+        "NOTION_SOCIALING_THUMBNAIL_DATABASE_ID가 설정되지 않았습니다."
+      );
+    }
+
+    const headers = getNotionHeaders();
+
+    // status 필터: OPEN, PENDING, FINISH만 허용
+    const statusInfo = await findPropertyInfo(databaseId, headers, "status");
+    const filters: any[] = [];
+
+    if (statusInfo) {
+      filters.push({
+        or: [
+          buildEqualsFilter(statusInfo, "OPEN"),
+          buildEqualsFilter(statusInfo, "PENDING"),
+          buildEqualsFilter(statusInfo, "FINISH"),
+        ].filter(Boolean),
+      });
+    }
+
+    const queryBody: any = {
+      page_size: 100,
+    };
+
+    if (filters.length > 0) {
+      queryBody.filter = filters.length === 1 ? filters[0] : { and: filters };
+    }
+
+    const queryResponse = await fetch(
+      `${NOTION_API_BASE}/databases/${databaseId}/query`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(queryBody),
+        next: { revalidate: 600 }, // 10분 캐시
+      }
+    );
+
+    if (!queryResponse.ok) {
+      const errorData = await queryResponse.json().catch(() => ({}));
+      console.error("Notion thumbnail query error:", errorData);
+      throw new Error(
+        `Notion 썸네일 데이터베이스 쿼리 실패: ${
+          errorData.message || queryResponse.statusText
+        }`
+      );
+    }
+
+    const data = await queryResponse.json();
+    const pages = data.results || [];
+
+    // Notion 페이지를 SocialingThumbnail로 변환
+    const thumbnails: SocialingThumbnail[] = [];
+    for (const page of pages) {
+      const thumbnail = parseNotionPageToThumbnail(page);
+      if (thumbnail) {
+        thumbnails.push(thumbnail);
+      }
+    }
+
+    // order로 정렬
+    thumbnails.sort((a, b) => a.order - b.order);
+
+    return thumbnails;
+  } catch (error) {
+    console.error("getSocialingThumbnails error:", error);
+    throw error;
+  }
+}
+
+/**
+ * 소셜링 목록 조회 (서버 사이드)
+ */
+export async function getSocialings(): Promise<Socialing[]> {
+  try {
+    const databaseId = process.env.NOTION_SOCIALING_DATABASE_ID;
+    if (!databaseId) {
+      throw new Error("NOTION_SOCIALING_DATABASE_ID가 설정되지 않았습니다.");
+    }
+
+    const headers = getNotionHeaders();
+
+    const queryBody: any = {
+      page_size: 100,
+    };
+
+    const queryResponse = await fetch(
+      `${NOTION_API_BASE}/databases/${databaseId}/query`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(queryBody),
+        next: { revalidate: 60 }, // 1분 캐시
+      }
+    );
+
+    if (!queryResponse.ok) {
+      const errorData = await queryResponse.json().catch(() => ({}));
+      console.error("Notion socialing query error:", errorData);
+      throw new Error(
+        `Notion 소셜링 데이터베이스 쿼리 실패: ${
+          errorData.message || queryResponse.statusText
+        }`
+      );
+    }
+
+    const data = await queryResponse.json();
+    const pages = data.results || [];
+
+    // Notion 페이지를 Socialing으로 변환
+    const socialings: Socialing[] = [];
+    for (const page of pages) {
+      const socialing = parseNotionPageToSocialing(page);
+      if (socialing) {
+        socialings.push(socialing);
+      }
+    }
+
+    return socialings;
+  } catch (error) {
+    console.error("getSocialings error:", error);
     throw error;
   }
 }

@@ -20,7 +20,7 @@ export default function ConsumerLayout({
 
   const navItems = [
     { href: "/", label: "홈" },
-    // { href: "/social", label: "소셜링" }, // 개발 예정
+    { href: "/social", label: "소셜링" },
     { href: "/contents", label: "컨텐츠" },
     // { href: "/community", label: "커뮤니티" }, // 개발 예정
   ];
@@ -34,7 +34,7 @@ export default function ConsumerLayout({
             <div className="flex items-center gap-6">
               {/* 데스크톱 로고 */}
               <Link href="/" className="hidden md:block text-xl font-bold text-text-primary hover:text-primary-600 transition-colors">
-                ironArchive
+                ironProject
               </Link>
               
               {/* 모바일 네비게이션 버튼 (홈/컨텐츠) */}
@@ -98,7 +98,7 @@ export default function ConsumerLayout({
       <footer className="border-t border-border bg-surface mt-auto">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-sm text-text-secondary">
-            © {new Date().getFullYear()} ironArchive. All rights reserved.
+            © {new Date().getFullYear()} ironProject. All rights reserved.
           </p>
         </div>
       </footer>

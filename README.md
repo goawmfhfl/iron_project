@@ -1,4 +1,4 @@
-# ironArchive
+# ironProject
 
 기록을 통한 성장을 위한 플랫폼. React, Next.js, Supabase, Tailwind CSS를 활용하여 개발되었습니다.
 
@@ -14,7 +14,7 @@
 ## 프로젝트 구조
 
 ```
-ironArchive/
+ironProject/
 ├── app/
 │   ├── (admin)/          # 관리자 페이지 그룹
 │   │   └── admin/
