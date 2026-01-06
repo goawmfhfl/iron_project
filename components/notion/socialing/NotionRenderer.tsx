@@ -8,15 +8,20 @@
 
 import { NotionBlock } from "./NotionBlock";
 import type { NotionBlock as NotionBlockType } from "@/lib/types/notion";
+import type { Socialing } from "@/lib/types/socialing";
 
 interface NotionRendererProps {
   blocks: NotionBlockType[];
   className?: string;
+  socialing?: Socialing;
+  renderApplyButton?: () => JSX.Element;
 }
 
 export function NotionRenderer({
   blocks,
   className,
+  socialing,
+  renderApplyButton,
 }: NotionRendererProps) {
   if (!blocks || blocks.length === 0) {
     return (
@@ -68,7 +73,14 @@ export function NotionRenderer({
       } else {
         flushBulletList();
         flushNumberedList();
-        elements.push(<NotionBlock key={block.id} block={block} />);
+        elements.push(
+          <NotionBlock
+            key={block.id}
+            block={block}
+            socialing={socialing}
+            renderApplyButton={renderApplyButton}
+          />
+        );
       }
     });
 

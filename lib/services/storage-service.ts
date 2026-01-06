@@ -2,6 +2,49 @@
 
 import { supabase } from "@/lib/supabase/client";
 
+function getFileExtension(fileName: string): string {
+  const idx = fileName.lastIndexOf(".");
+  if (idx <= -1) return "";
+  const ext = fileName.slice(idx).toLowerCase();
+  // 확장자가 너무 길거나 이상하면 무시
+  if (ext.length > 16) return "";
+  // ".png" 같은 정상 형태만 허용
+  if (!/^\.[a-z0-9]+$/.test(ext)) return "";
+  return ext;
+}
+
+function safeFolder(folder: string): string {
+  // 경로 구분자/공백/특수문자 최소화 (폴더는 보통 id라서 보수적으로 처리)
+  const trimmed = folder.trim().replace(/^\/+|\/+$/g, "");
+  const lowered = trimmed.toLowerCase();
+
+  // UUID(하이픈 포함)로 들어오면 32자리 hex로 정규화
+  if (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+      lowered
+    )
+  ) {
+    return lowered.replace(/-/g, "");
+  }
+
+  // 이미 32자리 hex면 그대로 사용
+  if (/^[0-9a-f]{32}$/.test(lowered)) {
+    return lowered;
+  }
+
+  return lowered.replace(/[^a-z0-9/_-]/g, "_");
+}
+
+function makeSafeObjectName(originalName: string): string {
+  const timestamp = Date.now();
+  const ext = getFileExtension(originalName);
+  const rand =
+    (globalThis.crypto as Crypto | undefined)?.randomUUID?.() ??
+    `${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+  // Supabase Storage key에 안전한 문자만 사용
+  return `${timestamp}-${rand}${ext}`;
+}
+
 export interface UploadImageOptions {
   file: File;
   bucket: "thumbnails";
@@ -22,10 +65,10 @@ export async function uploadImage(
 ): Promise<UploadImageResult> {
   const { file, bucket, folder = "", onProgress } = options;
 
-  // 파일명 생성 (타임스탬프 + 원본 파일명)
-  const timestamp = Date.now();
-  const fileName = `${timestamp}-${file.name}`;
-  const filePath = folder ? `${folder}/${fileName}` : fileName;
+  // 파일명 생성: 원본 파일명을 그대로 쓰면 InvalidKey가 날 수 있어 안전한 이름으로 재생성
+  const fileName = makeSafeObjectName(file.name);
+  const cleanFolder = folder ? safeFolder(folder) : "";
+  const filePath = cleanFolder ? `${cleanFolder}/${fileName}` : fileName;
 
   // 파일 업로드
   const { data, error } = await supabase.storage
@@ -131,9 +174,9 @@ export async function uploadFile(
 ): Promise<UploadFileResult> {
   const { file, bucket, folder = "" } = options;
 
-  const timestamp = Date.now();
-  const fileName = `${timestamp}-${file.name}`;
-  const filePath = folder ? `${folder}/${fileName}` : fileName;
+  const fileName = makeSafeObjectName(file.name);
+  const cleanFolder = folder ? safeFolder(folder) : "";
+  const filePath = cleanFolder ? `${cleanFolder}/${fileName}` : fileName;
 
   const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
     cacheControl: "3600",

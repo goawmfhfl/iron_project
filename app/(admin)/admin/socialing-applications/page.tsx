@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import type { FormDatabaseType } from "@/lib/types/notion-form";
 import type { ApplicationStatus, SocialingApplication } from "@/lib/types/socialing-apply";
-import { getSocialingApplications } from "@/lib/services/socialing-apply-service";
 
 export default function SocialingApplicationsPage() {
   const router = useRouter();
@@ -30,16 +29,21 @@ export default function SocialingApplicationsPage() {
     try {
       setLoading(true);
       setError(null);
-      const result = await getSocialingApplications({
-        page,
-        pageSize,
-        form_database_type: formDatabaseType || undefined,
-        status: status || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-      });
-      setApplications(result.applications);
-      setTotal(result.total);
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(pageSize));
+      if (formDatabaseType) params.set("form_database_type", formDatabaseType);
+      if (status) params.set("status", status);
+      if (startDate) params.set("start_date", startDate);
+      if (endDate) params.set("end_date", endDate);
+
+      const res = await fetch(`/api/admin/socialing-applications?${params.toString()}`);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json?.error || "신청 목록을 불러오는데 실패했습니다.");
+      }
+      setApplications((json?.applications ?? []) as SocialingApplication[]);
+      setTotal(Number(json?.total ?? 0));
     } catch (e) {
       setError(e instanceof Error ? e.message : "신청 목록을 불러오는데 실패했습니다.");
     } finally {
@@ -156,6 +160,7 @@ export default function SocialingApplicationsPage() {
                   <thead>
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">신청일</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">신청자</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">소셜링</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">폼</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-text-primary">상태</th>
@@ -169,7 +174,21 @@ export default function SocialingApplicationsPage() {
                         onClick={() => router.push(`/admin/socialing-applications/${app.id}`)}
                       >
                         <td className="py-3 px-4 text-sm text-text-secondary">{formatDateTime(app.created_at)}</td>
-                        <td className="py-3 px-4 text-sm text-text-primary">{app.socialing_id.slice(0, 8)}...</td>
+                        <td className="py-3 px-4 text-sm">
+                          {app.user_email ? (
+                            <div>
+                              <div className="text-text-primary font-medium">{app.user_email}</div>
+                              {app.user_name && (
+                                <div className="text-text-secondary text-xs mt-0.5">{app.user_name}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-text-tertiary">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-text-primary">
+                          {app.socialing_title || app.socialing_id.slice(0, 8) + "..."}
+                        </td>
                         <td className="py-3 px-4 text-sm text-text-primary">{formTypeLabel(app.form_database_type)}</td>
                         <td className="py-3 px-4">{statusBadge(app.status)}</td>
                       </tr>

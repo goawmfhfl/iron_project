@@ -54,3 +54,24 @@ export function createStaticClient() {
   return createSupabaseClient(supabaseUrl, supabaseAnonKey);
 }
 
+/**
+ * 서버 사이드에서 RLS를 우회하기 위한 Admin 클라이언트 (Service Role Key 사용)
+ * 주의: 이 클라이언트는 RLS 정책을 무시하므로 신중하게 사용해야 합니다.
+ */
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Supabase Admin 환경 변수가 설정되지 않았습니다. NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SERVICE_ROLE_KEY를 확인하세요."
+    );
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}

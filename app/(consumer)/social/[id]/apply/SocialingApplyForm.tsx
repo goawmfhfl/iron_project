@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { NotionFormFieldRenderer } from "@/components/consumer/NotionFormField";
+import { FormFunnel } from "@/components/consumer/FormFunnel";
 import { useModalStore } from "@/lib/stores/modal-store";
 import type { NotionFormSchema, FormDatabaseType } from "@/lib/types/notion-form";
 
@@ -24,6 +24,7 @@ export function SocialingApplyForm({
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
@@ -36,7 +37,7 @@ export function SocialingApplyForm({
     }
   };
 
-  const validateForm = (): boolean => {
+  const validateAllFields = (): boolean => {
     const nextErrors: Record<string, string> = {};
 
     formSchema.fields.forEach((field) => {
@@ -56,9 +57,31 @@ export function SocialingApplyForm({
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  const handleNext = () => {
+    if (currentStep < formSchema.fields.length) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateAllFields()) {
+      openModal({
+        type: "CUSTOM",
+        title: "입력 오류",
+        message: "필수 항목을 모두 입력해주세요.",
+        primaryAction: {
+          label: "확인",
+          onClick: () => closeModal(),
+        },
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -69,7 +92,8 @@ export function SocialingApplyForm({
           socialing_id: socialingId,
           form_database_type: formDatabaseType,
           form_database_id: formSchema.databaseId,
-          applicant_data: formData,
+          form_data: formData,
+          form_schema_snapshot: formSchema, // 신청 시점의 스키마 스냅샷 저장
         }),
       });
 
@@ -111,39 +135,18 @@ export function SocialingApplyForm({
 
   return (
     <Card elevation={1}>
-      <CardHeader>
-        <h1 className="text-2xl font-bold text-text-primary">신청하기</h1>
-        <p className="text-sm text-text-secondary mt-2">
-          아래 정보를 입력해주세요.
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {formSchema.fields.map((field) => (
-            <NotionFormFieldRenderer
-              key={field.id}
-              field={field}
-              value={formData[field.id]}
-              onChange={(value) => handleFieldChange(field.id, value)}
-              error={errors[field.id]}
-              socialingId={socialingId}
-            />
-          ))}
-
-          <div className="flex gap-4 pt-4 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1"
-            >
-              취소
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? "제출 중..." : "제출하기"}
-            </Button>
-          </div>
-        </form>
+      <CardContent className="pt-0">
+        <FormFunnel
+          fields={formSchema.fields}
+          formData={formData}
+          errors={errors}
+          onFieldChange={handleFieldChange}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSubmit={handleSubmit}
+          currentStep={currentStep}
+          socialingId={socialingId}
+        />
       </CardContent>
     </Card>
   );

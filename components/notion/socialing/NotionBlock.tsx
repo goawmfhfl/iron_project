@@ -9,17 +9,23 @@ import { formatNotionPageId } from "@/lib/utils/notion";
 import {
   isThumbnailCallout,
   isDetailCallout,
+  isInfoCallout,
+  isApplyButtonCallout,
   extractImagesFromCallout,
 } from "@/lib/utils/socialing-notion";
 import { SocialingDetailThumbnail } from "@/components/consumer/SocialingDetailThumbnail";
 import { SocialingDetailImages } from "@/components/consumer/SocialingDetailImages";
+import { SocialingDetailInfo } from "@/components/consumer/SocialingDetailInfo";
+import type { Socialing } from "@/lib/types/socialing";
 import type { NotionBlock } from "@/lib/types/notion";
 
 interface NotionBlockProps {
   block: NotionBlock;
+  socialing?: Socialing;
+  renderApplyButton?: () => JSX.Element;
 }
 
-export function NotionBlock({ block }: NotionBlockProps) {
+export function NotionBlock({ block, socialing, renderApplyButton }: NotionBlockProps) {
   const { type, id } = block;
 
   switch (type) {
@@ -86,14 +92,20 @@ export function NotionBlock({ block }: NotionBlockProps) {
 
     case "quote":
       return (
-        <blockquote className="border-l-4 border-primary-500 pl-4 py-2 my-4 italic text-text-secondary bg-surface-elevated rounded-r">
+        <blockquote className="my-6 rounded-xl border border-border bg-surface-elevated px-5 py-4 text-text-secondary">
           <div>
             {block.quote?.rich_text && (
-              <p className="mb-2 leading-normal">{renderRichText(block.quote?.rich_text)}</p>
+              <p className="text-base leading-relaxed">
+                {renderRichText(block.quote?.rich_text)}
+              </p>
             )}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <div className="mt-2">
-                <NotionRenderer blocks={block.children} />
+              <div className="mt-3">
+                <NotionRenderer
+                  blocks={block.children}
+                  socialing={socialing}
+                  renderApplyButton={renderApplyButton}
+                />
               </div>
             )}
           </div>
@@ -161,18 +173,37 @@ export function NotionBlock({ block }: NotionBlockProps) {
       if (isThumbnailCallout(block)) {
         const thumbnailImages = extractImagesFromCallout(block);
         if (thumbnailImages.length > 0) {
-          return <SocialingDetailThumbnail images={thumbnailImages} />;
+          return (
+            <SocialingDetailThumbnail
+              images={thumbnailImages}
+              status={socialing?.status}
+            />
+          );
         }
         return null;
       }
 
-      // "상세페이지" 콜아웃 처리
+      // "상세페이지" 콜아웃 처리 (상세 이미지들)
       if (isDetailCallout(block)) {
         const detailImages = extractImagesFromCallout(block);
         if (detailImages.length > 0) {
           return <SocialingDetailImages images={detailImages} />;
         }
         return null;
+      }
+
+      // "상세정보" 콜아웃 처리 (소셜링 상세 정보 카드)
+      if (isInfoCallout(block) && socialing) {
+        return <SocialingDetailInfo socialing={socialing} />;
+      }
+
+      // "신청버튼" 콜아웃 처리 (신청 버튼 슬롯 렌더링)
+      if (isApplyButtonCallout(block) && renderApplyButton) {
+        return (
+          <div className="my-6">
+            {renderApplyButton()}
+          </div>
+        );
       }
 
       // 기본 콜아웃 렌더링
@@ -187,7 +218,11 @@ export function NotionBlock({ block }: NotionBlockProps) {
             )}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
               <div className="mt-2">
-                <NotionRenderer blocks={block.children} />
+                <NotionRenderer
+                  blocks={block.children}
+                  socialing={socialing}
+                  renderApplyButton={renderApplyButton}
+                />
               </div>
             )}
           </div>
@@ -202,7 +237,11 @@ export function NotionBlock({ block }: NotionBlockProps) {
           </summary>
           <div className="ml-4 mt-2">
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <NotionRenderer blocks={block.children} />
+              <NotionRenderer
+                blocks={block.children}
+                socialing={socialing}
+                renderApplyButton={renderApplyButton}
+              />
             )}
           </div>
         </details>

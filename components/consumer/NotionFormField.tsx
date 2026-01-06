@@ -236,6 +236,10 @@ export function NotionFormFieldRenderer({
       );
 
     case "files":
+      // 본인 확인 이미지 필드는 최대 3장으로 제한
+      const isIdentityVerification = field.name?.includes("본인 확인");
+      const maxFiles = isIdentityVerification ? 3 : 10;
+      
       return (
         <FileUpload
           label={field.name}
@@ -243,7 +247,7 @@ export function NotionFormFieldRenderer({
           onChange={onChange}
           error={error}
           required={field.required}
-          maxFiles={10}
+          maxFiles={maxFiles}
           maxSizeMB={5}
           socialingId={socialingId}
         />

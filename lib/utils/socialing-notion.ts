@@ -28,6 +28,22 @@ export function isDetailCallout(block: NotionBlock): boolean {
 }
 
 /**
+ * 콜아웃 블록이 "상세정보" 텍스트를 포함하는지 확인
+ */
+export function isInfoCallout(block: NotionBlock): boolean {
+  const text = extractCalloutText(block);
+  return text.toLowerCase().includes("상세정보");
+}
+
+/**
+ * 콜아웃 블록이 "신청버튼" 텍스트를 포함하는지 확인
+ */
+export function isApplyButtonCallout(block: NotionBlock): boolean {
+  const text = extractCalloutText(block);
+  return text.toLowerCase().includes("신청버튼");
+}
+
+/**
  * 이미지 블록에서 URL 추출
  */
 function extractImageUrl(block: NotionBlock): string | null {

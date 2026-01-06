@@ -1026,22 +1026,75 @@ export async function getNotionFormSchema(
         order: parsed.order,
       };
 
+      // 필수 필드 감지
       if (rawFieldName.includes("필수") || fieldName.includes("필수")) {
         field.required = true;
       }
 
-      const longTextOption = detectLongText(fieldName, propType);
-      if (longTextOption !== undefined) {
-        field.isLongText = longTextOption;
+      // description 추출 (Notion property.description)
+      if (prop.description && Array.isArray(prop.description)) {
+        const descriptionText = prop.description
+          .map((item: any) => item.plain_text || "")
+          .join("")
+          .trim();
+        if (descriptionText) {
+          field.description = descriptionText;
+        }
       }
 
+      // 필드명 패턴으로 isDescription, isDetail 감지
+      const lowerFieldName = fieldName.toLowerCase();
+      if (lowerFieldName.includes("설명")) {
+        field.isDescription = true;
+      }
+      if (lowerFieldName.includes("상세")) {
+        field.isDetail = true;
+      }
+
+      // rich_text 타입의 추가 옵션 추출
+      if (propType === "rich_text" && prop.rich_text) {
+        const longTextOption = detectLongText(fieldName, propType);
+        if (longTextOption !== undefined) {
+          field.isLongText = longTextOption;
+        }
+        
+        // placeholder 추출 (rich_text의 경우 Notion API에서 직접 제공하지 않지만,
+        // description이나 필드명에서 추출 가능)
+        if (field.description) {
+          // description이 placeholder 역할을 할 수 있음
+          field.placeholder = field.description;
+        }
+      }
+
+      // number 타입의 validation 추출
+      if (propType === "number" && prop.number) {
+        const validation: { min?: number; max?: number } = {};
+        if (prop.number.min !== undefined) {
+          validation.min = prop.number.min;
+        }
+        if (prop.number.max !== undefined) {
+          validation.max = prop.number.max;
+        }
+        if (Object.keys(validation).length > 0) {
+          field.validation = validation;
+        }
+      }
+
+      // select 타입 옵션 추출
       if (propType === "select" && prop.select?.options) {
         field.options = prop.select.options.map((opt: any) => opt.name);
-      } else if (propType === "multi_select" && prop.multi_select?.options) {
+      }
+
+      // multi_select 타입 옵션 및 max_selections 추출
+      if (propType === "multi_select" && prop.multi_select?.options) {
         field.options = prop.multi_select.options.map((opt: any) => opt.name);
         const maxSelections = extractMaxSelections(fieldName);
-        if (maxSelections) field.maxSelections = maxSelections;
-        if (prop.multi_select?.max_selections) field.maxSelections = prop.multi_select.max_selections;
+        if (maxSelections) {
+          field.maxSelections = maxSelections;
+        }
+        if (prop.multi_select?.max_selections) {
+          field.maxSelections = prop.multi_select.max_selections;
+        }
       }
 
       fields.push(field);

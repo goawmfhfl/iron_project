@@ -20,6 +20,11 @@ export interface NotionFormField {
   isLongText?: boolean; // rich_text일 때 textarea 여부
   maxSelections?: number; // multi_select 최대 선택
   order?: number; // "01. ..." prefix 기반 정렬용
+  description?: string; // 필드 설명 (Notion property.description)
+  placeholder?: string; // placeholder 텍스트
+  isDescription?: boolean; // 설명 필드 여부
+  isDetail?: boolean; // 상세 답변 필드 여부
+  validation?: { min?: number; max?: number; pattern?: string }; // 검증 규칙
 }
 
 export interface NotionFormSchema {

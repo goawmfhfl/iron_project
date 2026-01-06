@@ -87,15 +87,17 @@ const loginUser = async (data: SignInData): Promise<LoginResponse> => {
 
 /**
  * 로그인 훅
+ * @param redirectPath 로그인 성공 후 이동할 경로 (선택사항)
  */
-export const useLogin = () => {
+export const useLogin = (redirectPath?: string | null) => {
   const router = useRouter();
 
   return useMutation({
     mutationFn: loginUser,
     onSuccess: () => {
-      // 로그인 성공 시 홈 페이지로 리다이렉트
-      router.push("/");
+      // 로그인 성공 시 redirect 경로가 있으면 해당 경로로, 없으면 홈으로 리다이렉트
+      const targetPath = redirectPath || "/";
+      router.push(targetPath);
       router.refresh();
     },
     onError: (error: LoginError) => {

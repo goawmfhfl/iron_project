@@ -15,7 +15,9 @@ const REMEMBERED_EMAIL_KEY = "ironProject_remembered_email";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const loginMutation = useLogin();
+  // redirect 파라미터 읽기
+  const redirectPath = searchParams.get("redirect");
+  const loginMutation = useLogin(redirectPath || undefined);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [rememberEmail, setRememberEmail] = useState(false);
