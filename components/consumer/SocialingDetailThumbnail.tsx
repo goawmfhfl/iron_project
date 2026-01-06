@@ -56,13 +56,13 @@ export function SocialingDetailThumbnail({
         >
           {images.map((imageUrl, index) => (
             <SwiperSlide key={`${imageUrl}-${index}`}>
-              <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-surface-elevated">
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-surface-elevated">
                 <Image
                   src={imageUrl}
                   alt={`썸네일 ${index + 1}`}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 1280px"
+                  sizes="(max-width: 768px) 100vw, 1080px"
                   priority={index === 0}
                 />
               </div>

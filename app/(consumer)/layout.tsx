@@ -7,6 +7,7 @@ import { AuthButton } from "@/components/auth/AuthButton";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useScrollDirection } from "@/lib/hooks/useScrollDirection";
 
 export default function ConsumerLayout({
   children,
@@ -15,8 +16,12 @@ export default function ConsumerLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const scrollDirection = useScrollDirection();
 
   const isAdmin = user?.user_metadata?.user_role === "admin";
+  
+  // 스크롤 다운 시 헤더 숨김, 스크롤 업 시 표시
+  const isHeaderVisible = scrollDirection !== "down";
 
   const navItems = [
     { href: "/", label: "홈" },
@@ -27,7 +32,12 @@ export default function ConsumerLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-surface/80 backdrop-blur-sm">
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full border-b border-border bg-surface/80 backdrop-blur-sm transition-transform duration-300 ease-in-out",
+          !isHeaderVisible && "-translate-y-full"
+        )}
+      >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* 로고 및 네비게이션 */}
