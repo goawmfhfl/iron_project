@@ -109,3 +109,75 @@ export function validateImageType(file: File): boolean {
   return allowedTypes.includes(file.type);
 }
 
+export type StorageBucket = "thumbnails" | "files" | "socialing-applications";
+
+export interface UploadFileOptions {
+  file: File;
+  bucket: StorageBucket;
+  folder?: string;
+  onProgress?: (progress: number) => void;
+}
+
+export interface UploadFileResult {
+  url: string;
+  path: string;
+}
+
+/**
+ * 파일을 Supabase Storage에 업로드
+ */
+export async function uploadFile(
+  options: UploadFileOptions
+): Promise<UploadFileResult> {
+  const { file, bucket, folder = "" } = options;
+
+  const timestamp = Date.now();
+  const fileName = `${timestamp}-${file.name}`;
+  const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+  const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(`파일 업로드 실패: ${error.message}`);
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(bucket).getPublicUrl(filePath);
+
+  return {
+    url: publicUrl,
+    path: filePath,
+  };
+}
+
+/**
+ * 파일 삭제
+ */
+export async function deleteFile(bucket: StorageBucket, path: string): Promise<void> {
+  const { error } = await supabase.storage.from(bucket).remove([path]);
+
+  if (error) {
+    throw new Error(`파일 삭제 실패: ${error.message}`);
+  }
+}
+
+/**
+ * 파일 크기 검증 (기본 5MB)
+ */
+export function validateFileSize(file: File, maxSizeMB: number = 5): {
+  valid: boolean;
+  error?: string;
+} {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  if (file.size > maxSizeBytes) {
+    return {
+      valid: false,
+      error: `파일 크기는 ${maxSizeMB}MB 이하여야 합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+    };
+  }
+  return { valid: true };
+}

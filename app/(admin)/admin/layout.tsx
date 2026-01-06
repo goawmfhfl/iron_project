@@ -18,6 +18,7 @@ export default function AdminLayout({
     { href: "/admin", label: "대시보드" },
     { href: "/admin/posts", label: "콘텐츠 관리" },
     { href: "/admin/users", label: "회원 관리" },
+    { href: "/admin/socialing-applications", label: "소셜링 신청 관리" },
     { href: "/admin/settings", label: "설정" },
   ];
 

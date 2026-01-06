@@ -7,6 +7,8 @@ import type { Socialing } from "@/lib/types/socialing";
 import type { NotionPageContent } from "@/lib/types/notion";
 import { NotionRenderer } from "@/components/notion/socialing/NotionRenderer";
 import { SocialingCTAButton } from "@/components/consumer/SocialingCTAButton";
+import { SocialingDetailInfo } from "@/components/consumer/SocialingDetailInfo";
+import { Button } from "@/components/ui/Button";
 
 interface SocialingDetailClientProps {
   socialing: Socialing;
@@ -62,8 +64,15 @@ export function SocialingDetailClient({
 
   const pageIdForUrl = socialing.pageId.replace(/-/g, "");
 
+  const handleApplyClick = () => {
+    router.push(`/social/${pageIdForUrl}/apply`);
+  };
+
   return (
     <div className="pb-24">
+      {/* 소셜링 정보 카드 */}
+      <SocialingDetailInfo socialing={socialing} />
+      
       {/* Notion 콘텐츠 렌더링 */}
       {notionContent && notionContent.blocks && notionContent.blocks.length > 0 ? (
         <div className="mb-8">
@@ -74,6 +83,19 @@ export function SocialingDetailClient({
           상세 내용이 없습니다.
         </div>
       )}
+
+
+
+      {/* 인라인 신청하기 버튼 */}
+      <div className="mb-8 flex justify-center">
+        <Button
+          onClick={handleApplyClick}
+          size="lg"
+          className="w-full sm:w-auto px-8 py-4 text-lg font-semibold"
+        >
+          신청하기
+        </Button>
+      </div>
 
       {/* 고정 CTA 버튼 */}
       <SocialingCTAButton socialingId={pageIdForUrl} />

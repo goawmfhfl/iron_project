@@ -14,6 +14,12 @@ import type {
   SocialingType,
   EventDate,
 } from "@/lib/types/socialing";
+import type {
+  NotionFormSchema,
+  NotionFormField,
+  NotionFormFieldType,
+  FormDatabaseType,
+} from "@/lib/types/notion-form";
 
 const NOTION_API_BASE = "https://api.notion.com/v1";
 
@@ -661,6 +667,7 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
   let type: SocialingType | null = null;
   let eventDate: EventDate | null = null;
   let participationFee: number | null = null;
+  let location: string | null = null;
 
   for (const [key, value] of Object.entries(page.properties || {})) {
     const prop = value as any;
@@ -697,6 +704,11 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
     ) {
       participationFee = extractNumberFromProperty(prop);
     }
+
+    // location 찾기
+    if (key.toLowerCase() === "location") {
+      location = extractTextFromProperty(prop);
+    }
   }
 
   const coverImage = extractCoverImage(page);
@@ -711,6 +723,7 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
     type: (type || "SOCIALING") as SocialingType,
     eventDate,
     participationFee,
+    location,
     coverImage,
     createdAt,
     updatedAt,
@@ -909,5 +922,146 @@ export async function getSocialingByPageId(
   } catch (error) {
     console.error("getSocialingByPageId error:", error);
     throw error;
+  }
+}
+
+/**
+ * 폼 데이터베이스 ID 가져오기
+ */
+function getFormDatabaseId(type: FormDatabaseType): string {
+  const envMap: Record<FormDatabaseType, string> = {
+    DORAN_BOOK: process.env.NOTION_DORAN_BOOK_APPLY_DATABASE_ID || "",
+    EVENT: process.env.NOTION_EVENT_APPLY_DATABASE_ID || "",
+    VIVID: process.env.NOTION_VIVID_APPLY_DATABASE_ID || "",
+  };
+  const databaseId = envMap[type];
+  if (!databaseId) {
+    throw new Error(`NOTION_${type}_APPLY_DATABASE_ID가 설정되지 않았습니다.`);
+  }
+  return databaseId;
+}
+
+function extractMaxSelections(fieldName: string): number | undefined {
+  const match = fieldName.match(/최대\s*(\d+)\s*개/);
+  return match ? parseInt(match[1], 10) : undefined;
+}
+
+function detectLongText(
+  fieldName: string,
+  fieldType: string
+): boolean | undefined {
+  if (fieldType !== "rich_text") return undefined;
+  const lowerName = fieldName.toLowerCase();
+  if (lowerName.includes("_long") || lowerName.includes("long")) return true;
+  if (lowerName.includes("_short") || lowerName.includes("short")) return false;
+  return undefined;
+}
+
+function extractFieldOrderAndName(fieldName: string): { order?: number; name: string } {
+  const match = fieldName.match(/^\s*(\d+)\s*[\.\)\-_:]\s*(.+)\s*$/);
+  if (!match) return { name: fieldName.trim() };
+  const order = parseInt(match[1], 10);
+  const name = (match[2] || "").trim();
+  return { order: Number.isFinite(order) ? order : undefined, name: name || fieldName.trim() };
+}
+
+/**
+ * Notion 폼 스키마 가져오기
+ * - options.cache === "no-store"일 때 CSR 용도로 캐시 없이 조회
+ */
+export async function getNotionFormSchema(
+  type: FormDatabaseType,
+  submitUrl: string,
+  options?: { cache?: RequestCache }
+): Promise<NotionFormSchema | null> {
+  try {
+    const databaseId = getFormDatabaseId(type);
+    const headers = getNotionHeaders();
+
+    const dbResponse = await fetch(`${NOTION_API_BASE}/databases/${databaseId}`, {
+      method: "GET",
+      headers,
+      ...(options?.cache === "no-store"
+        ? { cache: "no-store" as const }
+        : { next: { revalidate: 3600 } }),
+    });
+
+    if (!dbResponse.ok) {
+      console.error("Notion database fetch failed:", dbResponse.statusText);
+      return null;
+    }
+
+    const dbData = await dbResponse.json();
+    const properties = dbData.properties || {};
+    const coverImage = extractCoverImage(dbData);
+
+    const fields: NotionFormField[] = [];
+    const supportedTypes: NotionFormFieldType[] = [
+      "title",
+      "rich_text",
+      "number",
+      "select",
+      "multi_select",
+      "date",
+      "checkbox",
+      "url",
+      "email",
+      "phone_number",
+      "files",
+    ];
+
+    for (const [key, value] of Object.entries(properties)) {
+      const prop = value as any;
+      const propType = prop.type as string;
+      if (!supportedTypes.includes(propType as NotionFormFieldType)) continue;
+
+      const rawFieldName = prop.name || key;
+      const parsed = extractFieldOrderAndName(rawFieldName);
+      const fieldName = parsed.name;
+
+      const field: NotionFormField = {
+        id: key,
+        name: fieldName,
+        type: propType as NotionFormFieldType,
+        order: parsed.order,
+      };
+
+      if (rawFieldName.includes("필수") || fieldName.includes("필수")) {
+        field.required = true;
+      }
+
+      const longTextOption = detectLongText(fieldName, propType);
+      if (longTextOption !== undefined) {
+        field.isLongText = longTextOption;
+      }
+
+      if (propType === "select" && prop.select?.options) {
+        field.options = prop.select.options.map((opt: any) => opt.name);
+      } else if (propType === "multi_select" && prop.multi_select?.options) {
+        field.options = prop.multi_select.options.map((opt: any) => opt.name);
+        const maxSelections = extractMaxSelections(fieldName);
+        if (maxSelections) field.maxSelections = maxSelections;
+        if (prop.multi_select?.max_selections) field.maxSelections = prop.multi_select.max_selections;
+      }
+
+      fields.push(field);
+    }
+
+    fields.sort((a, b) => {
+      const ao = a.order ?? Number.POSITIVE_INFINITY;
+      const bo = b.order ?? Number.POSITIVE_INFINITY;
+      if (ao !== bo) return ao - bo;
+      return a.name.localeCompare(b.name, "ko-KR");
+    });
+
+    return {
+      databaseId,
+      fields,
+      submitUrl,
+      coverImage,
+    };
+  } catch (error) {
+    console.error("getNotionFormSchema error:", error);
+    return null;
   }
 }

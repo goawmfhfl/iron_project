@@ -24,6 +24,7 @@ export interface Socialing {
   type: SocialingType;
   eventDate: EventDate | null;
   participationFee: number | null;
+  location: string | null;
   coverImage: string | null;
   createdAt: string;
   updatedAt: string;
