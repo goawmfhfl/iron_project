@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getNotionContentByPageId } from "@/lib/services/notion-service.server";
 import { getNotionPageContent } from "@/lib/services/notion-service";
-import { NotionRenderer } from "@/components/notion/NotionRenderer";
+import { NotionRenderer } from "@/components/notion/content/NotionRenderer";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";

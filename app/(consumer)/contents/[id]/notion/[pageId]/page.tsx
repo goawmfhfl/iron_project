@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { NotionRenderer } from "@/components/notion/NotionRenderer";
+import { NotionRenderer } from "@/components/notion/content/NotionRenderer";
 import { getNotionPageContent } from "@/lib/services/notion-service";
 import { formatNotionPageId } from "@/lib/utils/notion";
 

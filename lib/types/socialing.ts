@@ -1,4 +1,4 @@
-export type SocialingStatus = "OPEN" | "PENDING" | "FINISH";
+export type SocialingStatus = "OPEN" | "PENDING" | "FINISH" | "STAGING";
 export type SocialingType = "CHALLENGE" | "SOCIALING" | "EVENT";
 
 export interface EventDate {

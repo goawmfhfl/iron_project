@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { Socialing, SocialingType } from "@/lib/types/socialing";
 import { Card, CardContent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/date";
+import { useModalStore } from "@/lib/stores/modal-store";
 
 interface SocialingCardProps {
   socialing: Socialing;
@@ -73,15 +75,45 @@ export function SocialingCard({
   socialing,
   className,
 }: SocialingCardProps) {
+  const router = useRouter();
+  const { openModal, closeModal } = useModalStore();
   const eventDateStr = socialing.eventDate
     ? formatEventDate(socialing.eventDate)
     : null;
 
+  // Notion 페이지 ID를 URL 형식으로 변환 (하이픈 제거)
+  const pageIdForUrl = socialing.pageId.replace(/-/g, "");
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // PENDING 상태일 때 모달 표시
+    if (socialing.status === "PENDING") {
+      const typeText = getTypeBadgeText(socialing.type);
+      openModal({
+        type: "CUSTOM",
+        title: "예정 이벤트",
+        message: `예정 이벤트를 기다려 주세요`,
+        primaryAction: {
+          label: "확인",
+          onClick: () => {
+            closeModal();
+          },
+        },
+      });
+      return;
+    }
+
+    // OPEN/FINISH 상태일 때만 상세페이지로 이동
+    router.push(`/social/${pageIdForUrl}`);
+  };
+
   return (
     <Card
       elevation={1}
+      onClick={handleClick}
       className={cn(
-        "group transition-all duration-200 hover:shadow-elevation-2 hover:-translate-y-1",
+        "group transition-all duration-200 hover:shadow-elevation-2 hover:-translate-y-1 cursor-pointer",
         getStatusStyleClass(socialing.status),
         className
       )}

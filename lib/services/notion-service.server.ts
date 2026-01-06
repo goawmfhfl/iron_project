@@ -809,9 +809,27 @@ export async function getSocialings(): Promise<Socialing[]> {
 
     const headers = getNotionHeaders();
 
+    // status 필터: STAGING은 노출하지 않기 위해 OPEN/PENDING/FINISH만 허용
+    const statusInfo = await findPropertyInfo(databaseId, headers, "status");
+    const filters: any[] = [];
+
+    if (statusInfo) {
+      filters.push({
+        or: [
+          buildEqualsFilter(statusInfo, "OPEN"),
+          buildEqualsFilter(statusInfo, "PENDING"),
+          buildEqualsFilter(statusInfo, "FINISH"),
+        ].filter(Boolean),
+      });
+    }
+
     const queryBody: any = {
       page_size: 100,
     };
+
+    if (filters.length > 0) {
+      queryBody.filter = filters.length === 1 ? filters[0] : { and: filters };
+    }
 
     const queryResponse = await fetch(
       `${NOTION_API_BASE}/databases/${databaseId}/query`,
@@ -840,7 +858,8 @@ export async function getSocialings(): Promise<Socialing[]> {
     const socialings: Socialing[] = [];
     for (const page of pages) {
       const socialing = parseNotionPageToSocialing(page);
-      if (socialing) {
+      // 혹시나 쿼리 필터가 적용되지 않는 환경을 대비해, STAGING은 한번 더 차단
+      if (socialing && socialing.status !== "STAGING") {
         socialings.push(socialing);
       }
     }
@@ -848,6 +867,47 @@ export async function getSocialings(): Promise<Socialing[]> {
     return socialings;
   } catch (error) {
     console.error("getSocialings error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Notion 페이지 ID로 소셜링 조회 (서버 사이드)
+ */
+export async function getSocialingByPageId(
+  pageId: string
+): Promise<Socialing | null> {
+  try {
+    const headers = getNotionHeaders();
+    const formattedPageId = formatNotionPageId(pageId);
+
+    const pageResponse = await fetch(`${NOTION_API_BASE}/pages/${formattedPageId}`, {
+      method: "GET",
+      headers,
+      next: { revalidate: 600 }, // 10분 캐시
+    });
+
+    if (!pageResponse.ok) {
+      if (pageResponse.status === 404) {
+        return null;
+      }
+      const errorData = await pageResponse.json().catch(() => ({}));
+      throw new Error(
+        `Notion 소셜링 페이지 조회 실패: ${errorData.message || pageResponse.statusText}`
+      );
+    }
+
+    const page = await pageResponse.json();
+    const socialing = parseNotionPageToSocialing(page);
+    
+    // STAGING 상태는 null 반환
+    if (socialing && socialing.status === "STAGING") {
+      return null;
+    }
+    
+    return socialing;
+  } catch (error) {
+    console.error("getSocialingByPageId error:", error);
     throw error;
   }
 }

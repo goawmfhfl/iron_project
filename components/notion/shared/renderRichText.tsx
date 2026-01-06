@@ -160,4 +160,3 @@ export function renderRichText(richText: unknown): React.ReactNode {
     );
   });
 }
-

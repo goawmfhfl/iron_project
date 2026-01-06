@@ -4,17 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { extractTextFromRichText } from "@/lib/services/notion-service";
 import { NotionRenderer } from "./NotionRenderer";
-import { renderRichText } from "./renderRichText";
+import { renderRichText } from "../shared/renderRichText";
 import { formatNotionPageId } from "@/lib/utils/notion";
-import { PromoCallout } from "./PromoCallout";
+import {
+  isThumbnailCallout,
+  isDetailCallout,
+  extractImagesFromCallout,
+} from "@/lib/utils/socialing-notion";
+import { SocialingDetailThumbnail } from "@/components/consumer/SocialingDetailThumbnail";
+import { SocialingDetailImages } from "@/components/consumer/SocialingDetailImages";
 import type { NotionBlock } from "@/lib/types/notion";
 
 interface NotionBlockProps {
   block: NotionBlock;
-  contentId?: string;
 }
 
-export function NotionBlock({ block, contentId }: NotionBlockProps) {
+export function NotionBlock({ block }: NotionBlockProps) {
   const { type, id } = block;
 
   switch (type) {
@@ -33,7 +38,7 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
       }
 
       return (
-        <p className="text-base text-text-primary leading-7  ">
+        <p className="text-base text-text-primary leading-7">
           {renderRichText(block.paragraph?.rich_text)}
         </p>
       );
@@ -86,10 +91,9 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
             {block.quote?.rich_text && (
               <p className="mb-2 leading-normal">{renderRichText(block.quote?.rich_text)}</p>
             )}
-            {/* 중첩된 children 블록 렌더링 */}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
               <div className="mt-2">
-                <NotionRenderer blocks={block.children} contentId={contentId} />
+                <NotionRenderer blocks={block.children} />
               </div>
             )}
           </div>
@@ -153,10 +157,25 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
       return <hr className="my-6 border-border" />;
 
     case "callout":
-      // green_background 콜아웃은 "홍보 카드" UI로 커스텀 렌더링
-      if (block.callout?.color === "green_background") {
-        return <PromoCallout block={block} contentId={contentId} />;
+      // "썸네일" 콜아웃 처리
+      if (isThumbnailCallout(block)) {
+        const thumbnailImages = extractImagesFromCallout(block);
+        if (thumbnailImages.length > 0) {
+          return <SocialingDetailThumbnail images={thumbnailImages} />;
+        }
+        return null;
       }
+
+      // "상세페이지" 콜아웃 처리
+      if (isDetailCallout(block)) {
+        const detailImages = extractImagesFromCallout(block);
+        if (detailImages.length > 0) {
+          return <SocialingDetailImages images={detailImages} />;
+        }
+        return null;
+      }
+
+      // 기본 콜아웃 렌더링
       return (
         <div className="border border-border rounded-lg p-4 my-4">
           {block.callout?.icon && (
@@ -166,10 +185,9 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
             {block.callout?.rich_text && (
               <p className="mb-2">{renderRichText(block.callout?.rich_text)}</p>
             )}
-            {/* 중첩된 children 블록 렌더링 */}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
               <div className="mt-2">
-                <NotionRenderer blocks={block.children} contentId={contentId} />
+                <NotionRenderer blocks={block.children} />
               </div>
             )}
           </div>
@@ -183,86 +201,12 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
             {renderRichText(block.toggle?.rich_text)}
           </summary>
           <div className="ml-4 mt-2">
-            {/* Toggle 내부 블록 렌더링 */}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <NotionRenderer blocks={block.children} contentId={contentId} />
+              <NotionRenderer blocks={block.children} />
             )}
           </div>
         </details>
       );
-
-    case "child_page": {
-      // Notion에서 '페이지 카드'처럼 보이는 블록
-      const title = block.child_page?.title ?? "페이지";
-      // child_page 블록의 id 자체가 이동해야 할 pageId 입니다.
-      const pageId = formatNotionPageId(block.id);
-      const href = contentId ? `/contents/${contentId}/notion/${pageId}` : null;
-
-      const contentEl = (
-        <>
-          <span className="text-xl leading-none">📄</span>
-          <span className="font-semibold text-text-primary underline underline-offset-4">
-            {title}
-          </span>
-        </>
-      );
-
-      const className =
-        "my-4 flex items-center gap-3 rounded-lg border border-border bg-surface-elevated/30 px-4 py-3 hover:bg-surface-hover transition-colors";
-
-      if (!href) {
-        return <div className={className}>{contentEl}</div>;
-      }
-
-      return (
-        <Link href={href} className={className}>
-          {contentEl}
-        </Link>
-      );
-    }
-
-    case "link_to_page": {
-      // 다른 페이지/DB로 연결되는 링크 블록
-      const pageIdRaw =
-        block.link_to_page?.page_id ??
-        block.link_to_page?.database_id ??
-        null;
-
-      if (!pageIdRaw) {
-        return (
-          <div className="my-2 text-sm text-text-tertiary italic">
-            [link_to_page 정보를 해석할 수 없습니다]
-          </div>
-        );
-      }
-
-      const pageId = formatNotionPageId(pageIdRaw);
-      const href = contentId ? `/contents/${contentId}/notion/${pageId}` : null;
-      const label =
-        block.link_to_page?.type === "database_id" ? "데이터베이스" : "페이지";
-      const icon = block.link_to_page?.type === "database_id" ? "🗂️" : "📄";
-
-      const className =
-        "my-4 flex items-center gap-3 rounded-lg border border-border bg-surface-elevated/30 px-4 py-3 hover:bg-surface-hover transition-colors";
-      const contentEl = (
-        <>
-          <span className="text-xl leading-none">{icon}</span>
-          <span className="font-semibold text-text-primary underline underline-offset-4">
-            {label}로 이동
-          </span>
-        </>
-      );
-
-      if (!href) {
-        return <div className={className}>{contentEl}</div>;
-      }
-
-      return (
-        <Link href={href} className={className}>
-          {contentEl}
-        </Link>
-      );
-    }
 
     default:
       return (

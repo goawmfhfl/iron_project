@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { NotionRenderer } from "@/components/notion/NotionRenderer";
+import { NotionRenderer } from "@/components/notion/content/NotionRenderer";
 import type { NotionPageContent } from "@/lib/types/notion";
 
 type EnvStatus = {
