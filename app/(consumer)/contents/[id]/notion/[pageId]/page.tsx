@@ -38,7 +38,7 @@ export default function ContentNotionSubPage() {
         {notionQuery.isLoading && (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-4 bg-surface-hover dark:bg-surface-elevated rounded animate-pulse" />
+              <div key={i} className="h-4 bg-surface-elevated rounded animate-pulse" />
             ))}
           </div>
         )}
@@ -67,7 +67,7 @@ export default function ContentNotionSubPage() {
         )}
 
         {notionQuery.isSuccess && notionQuery.data && (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
+          <div className="prose prose-sm max-w-none prose-invert">
             <NotionRenderer blocks={notionQuery.data.blocks || []} contentId={contentId} />
           </div>
         )}

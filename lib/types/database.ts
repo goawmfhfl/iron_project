@@ -7,6 +7,7 @@ export interface SignUpData {
   nickname: string;
   phone: string;
   gender: Gender;
+  profileImage?: string | null;
 }
 
 export interface SignInData {

@@ -79,19 +79,19 @@ export function FormTestClient() {
 
   const getPropertyTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      title: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      rich_text: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      email: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      phone_number: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-      number: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-      select: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-      multi_select: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-      date: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-      checkbox: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-      url: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-      files: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+      title: "bg-blue-900 text-blue-200",
+      rich_text: "bg-green-900 text-green-200",
+      email: "bg-purple-900 text-purple-200",
+      phone_number: "bg-yellow-900 text-yellow-200",
+      number: "bg-orange-900 text-orange-200",
+      select: "bg-pink-900 text-pink-200",
+      multi_select: "bg-indigo-900 text-indigo-200",
+      date: "bg-teal-900 text-teal-200",
+      checkbox: "bg-gray-900 text-gray-200",
+      url: "bg-cyan-900 text-cyan-200",
+      files: "bg-red-900 text-red-200",
     };
-    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    return colors[type] || "bg-gray-900 text-gray-200";
   };
 
   const isSupportedType = (type: string): boolean => {
@@ -172,8 +172,8 @@ export function FormTestClient() {
                       key={key}
                       className={`p-4 rounded-lg border-2 ${
                         supported
-                          ? "border-primary-300 bg-primary-50/50 dark:bg-primary-900/10"
-                          : "border-gray-300 bg-gray-50 dark:bg-gray-900/10 opacity-60"
+                          ? "border-primary-300 bg-primary-900/10"
+                          : "border-gray-300 bg-gray-900/10 opacity-60"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
@@ -188,7 +188,7 @@ export function FormTestClient() {
                               {prop.type}
                             </span>
                             {!supported && (
-                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                              <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-300">
                                 필터됨
                               </span>
                             )}
@@ -225,7 +225,7 @@ export function FormTestClient() {
                 {parsedSchema.fields.map((field) => (
                   <div
                     key={field.id}
-                    className="p-4 rounded-lg border-2 border-primary-300 bg-primary-50/50 dark:bg-primary-900/10"
+                    className="p-4 rounded-lg border-2 border-primary-300 bg-primary-900/10"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex-1">
@@ -239,22 +239,22 @@ export function FormTestClient() {
                             {field.type}
                           </span>
                           {field.required && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-900 text-red-200">
                               필수
                             </span>
                           )}
                           {field.order !== undefined && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-900 text-blue-200">
                               순서: {field.order}
                             </span>
                           )}
                           {field.isLongText && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-200">
                               긴 텍스트
                             </span>
                           )}
                           {field.maxSelections && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-900 text-purple-200">
                               최대 {field.maxSelections}개
                             </span>
                           )}

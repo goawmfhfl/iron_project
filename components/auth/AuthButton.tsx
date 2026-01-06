@@ -42,22 +42,13 @@ export function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => router.push("/login")}
-      >
-        로그인
-      </Button>
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => router.push("/signup")}
-      >
-        회원가입
-      </Button>
-    </div>
+    <Button
+      variant="primary"
+      size="sm"
+      onClick={() => router.push("/login")}
+    >
+      로그인
+    </Button>
   );
 }
 

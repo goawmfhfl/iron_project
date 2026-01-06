@@ -47,7 +47,7 @@ function makeSafeObjectName(originalName: string): string {
 
 export interface UploadImageOptions {
   file: File;
-  bucket: "thumbnails";
+  bucket: "thumbnails" | "profile-images";
   folder?: string;
   onProgress?: (progress: number) => void;
 }
@@ -97,7 +97,7 @@ export async function uploadImage(
  * 이미지 삭제
  */
 export async function deleteImage(
-  bucket: "thumbnails",
+  bucket: "thumbnails" | "profile-images",
   path: string
 ): Promise<void> {
   const { error } = await supabase.storage.from(bucket).remove([path]);
@@ -152,7 +152,11 @@ export function validateImageType(file: File): boolean {
   return allowedTypes.includes(file.type);
 }
 
-export type StorageBucket = "thumbnails" | "files" | "socialing-applications";
+export type StorageBucket =
+  | "thumbnails"
+  | "files"
+  | "socialing-applications"
+  | "profile-images";
 
 export interface UploadFileOptions {
   file: File;

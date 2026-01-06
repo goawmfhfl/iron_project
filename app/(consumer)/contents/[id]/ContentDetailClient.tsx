@@ -116,7 +116,7 @@ export function ContentDetailClient({
         {/* 제목 (Description은 제거) */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4 leading-tight">
-            <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-3 py-2 rounded-lg">
+            <span className="box-decoration-clone bg-background-secondary/35 px-3 py-2 rounded-lg">
               {content.title}
             </span>
           </h1>
@@ -144,7 +144,7 @@ export function ContentDetailClient({
         )}
 
         {notionQuery.isSuccess && notionQuery.data && (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
+          <div className="prose prose-sm max-w-none prose-invert">
             <NotionRenderer
               blocks={notionQuery.data.blocks || []}
               contentId={pageIdForUrl}

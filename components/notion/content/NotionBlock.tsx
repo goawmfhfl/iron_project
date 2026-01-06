@@ -41,7 +41,7 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
     case "heading_1":
       return (
         <h1 className="text-3xl font-bold text-text-primary mb-4 mt-6 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_1?.rich_text)}
           </span>
         </h1>
@@ -50,7 +50,7 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
     case "heading_2":
       return (
         <h2 className="text-2xl font-bold text-text-primary mb-3 mt-5 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_2?.rich_text)}
           </span>
         </h2>
@@ -59,7 +59,7 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
     case "heading_3":
       return (
         <h3 className="text-xl font-semibold text-text-primary mb-2 mt-4 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_3?.rich_text)}
           </span>
         </h3>

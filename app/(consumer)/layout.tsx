@@ -53,7 +53,7 @@ export default function ConsumerLayout({
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       pathname === item.href
-                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                        ? "bg-primary-900/30 text-primary-300"
                         : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
                     )}
                   >
@@ -71,7 +71,7 @@ export default function ConsumerLayout({
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       pathname === item.href
-                        ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                        ? "bg-primary-900/30 text-primary-300"
                         : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
                     )}
                   >

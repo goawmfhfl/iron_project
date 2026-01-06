@@ -143,7 +143,7 @@ export default function SocialingApplicationDetailPage() {
         <CardContent className="space-y-4">
           {/* 신청자 정보를 상단에 강조 표시 */}
           {(application.user_email || application.user_name) && (
-            <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800 mb-4">
+            <div className="p-4 bg-primary-900/20 rounded-lg border border-primary-800 mb-4">
               <h3 className="text-sm font-semibold text-text-primary mb-2">신청자 정보</h3>
               <div className="space-y-1">
                 {application.user_email && (

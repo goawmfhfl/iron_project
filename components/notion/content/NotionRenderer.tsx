@@ -84,7 +84,7 @@ export function NotionRenderer({ blocks, className, contentId }: NotionRendererP
 
   return (
     <div className={className}>
-      <article className="prose prose-sm max-w-none dark:prose-invert">
+      <article className="prose prose-sm max-w-none prose-invert">
         {renderBlocks()}
       </article>
     </div>

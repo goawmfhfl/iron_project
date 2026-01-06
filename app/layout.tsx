@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { FixedThemeToggle } from "@/components/ui/FixedThemeToggle";
 import { Modal } from "@/components/ui/Modal";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
@@ -75,21 +73,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
+    <html lang="ko" className={pretendard.variable}>
       <body>
         <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <AuthProvider>
-              {children}
-              <FixedThemeToggle />
-              <Modal />
-            </AuthProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            {children}
+            <Modal />
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

@@ -26,7 +26,7 @@ export class SignUpError extends Error {
  * 2. raw_user_meta_data(user_metadata)에 user_role을 포함해 저장 (기본: "user")
  */
 const signUpUser = async (data: SignUpData): Promise<SignUpResponse> => {
-  const { email, password, nickname, phone, gender } = data;
+  const { email, password, nickname, phone, gender, profileImage } = data;
   const defaultRole: UserRole = "admin";
 
   // 필수 필드 검증
@@ -61,6 +61,7 @@ const signUpUser = async (data: SignUpData): Promise<SignUpResponse> => {
           phone,
           gender,
           user_role: defaultRole,
+          profileImage: profileImage || null,
         },
       },
     });

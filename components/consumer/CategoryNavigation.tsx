@@ -65,8 +65,8 @@ export function CategoryNavigation({
             "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
             "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500",
             !currentFirstCategory
-              ? "bg-primary-600 dark:bg-primary-500 text-white shadow-elevation-1"
-              : "bg-surface-elevated dark:bg-surface-elevated text-text-primary dark:text-text-secondary border border-border hover:bg-surface-hover dark:hover:bg-surface-hover"
+              ? "bg-primary-500 text-white shadow-elevation-1"
+              : "bg-surface-elevated text-text-secondary border border-border hover:bg-surface-hover"
           )}
         >
           전체
@@ -79,8 +79,8 @@ export function CategoryNavigation({
               "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
               "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500",
               currentFirstCategory === category
-                ? "bg-primary-600 dark:bg-primary-500 text-white shadow-elevation-1"
-                : "bg-surface-elevated dark:bg-surface-elevated text-text-primary dark:text-text-secondary border border-border hover:bg-surface-hover dark:hover:bg-surface-hover"
+                ? "bg-primary-500 text-white shadow-elevation-1"
+                : "bg-surface-elevated text-text-secondary border border-border hover:bg-surface-hover"
             )}
           >
             {category}
@@ -90,7 +90,7 @@ export function CategoryNavigation({
 
       {/* 두 번째 카테고리 - 서브 탭 스타일 (첫 번째 카테고리가 선택된 경우에만 표시) */}
       {currentFirstCategory && availableSecondCategories.length > 0 && (
-        <div className="ml-6 pl-4 border-l-2 border-border dark:border-border">
+        <div className="ml-6 pl-4 border-l-2 border-border">
           <div className="flex flex-wrap gap-2">
             {/* secondCategory가 명시적으로 선택되지 않았을 때는 "전체" 버튼을 비활성화 상태로 표시 */}
             <button
@@ -100,8 +100,8 @@ export function CategoryNavigation({
                 "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500",
                 // currentSecondCategory가 null이고 URL에 secondCategory가 없을 때만 활성화
                 !currentSecondCategory && !searchParams.get("secondCategory")
-                  ? "bg-accent-500 dark:bg-accent-400 text-white shadow-elevation-1"
-                  : "bg-surface dark:bg-surface text-text-secondary dark:text-text-tertiary border border-border/50 hover:bg-surface-hover dark:hover:bg-surface-hover"
+                  ? "bg-accent-400 text-white shadow-elevation-1"
+                  : "bg-surface text-text-tertiary border border-border/50 hover:bg-surface-hover"
               )}
             >
               전체
@@ -114,8 +114,8 @@ export function CategoryNavigation({
                   "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
                   "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500",
                   currentSecondCategory === category
-                    ? "bg-accent-500 dark:bg-accent-400 text-white shadow-elevation-1"
-                    : "bg-surface dark:bg-surface text-text-secondary dark:text-text-tertiary border border-border/50 hover:bg-surface-hover dark:hover:bg-surface-hover"
+                    ? "bg-accent-400 text-white shadow-elevation-1"
+                    : "bg-surface text-text-tertiary border border-border/50 hover:bg-surface-hover"
                 )}
               >
                 {category}

@@ -68,27 +68,27 @@ function colorToClasses(color?: NotionColor): string {
   >;
 
   const fgMap: Record<string, string> = {
-    gray: "text-gray-600 dark:text-gray-300",
-    brown: "text-amber-800 dark:text-amber-300",
-    orange: "text-orange-600 dark:text-orange-300",
-    yellow: "text-yellow-700 dark:text-yellow-300",
-    green: "text-green-600 dark:text-green-300",
-    blue: "text-blue-600 dark:text-blue-300",
-    purple: "text-purple-600 dark:text-purple-300",
-    pink: "text-pink-600 dark:text-pink-300",
-    red: "text-red-600 dark:text-red-300",
+    gray: "text-gray-300",
+    brown: "text-amber-300",
+    orange: "text-orange-300",
+    yellow: "text-yellow-300",
+    green: "text-green-300",
+    blue: "text-blue-300",
+    purple: "text-purple-300",
+    pink: "text-pink-300",
+    red: "text-red-300",
   };
 
   const bgMap: Record<string, string> = {
-    gray: "bg-gray-100 dark:bg-gray-800/60",
-    brown: "bg-amber-100 dark:bg-amber-900/30",
-    orange: "bg-orange-100 dark:bg-orange-900/30",
-    yellow: "bg-yellow-100 dark:bg-yellow-900/30",
-    green: "bg-green-100 dark:bg-green-900/30",
-    blue: "bg-blue-100 dark:bg-blue-900/30",
-    purple: "bg-purple-100 dark:bg-purple-900/30",
-    pink: "bg-pink-100 dark:bg-pink-900/30",
-    red: "bg-red-100 dark:bg-red-900/30",
+    gray: "bg-gray-800/60",
+    brown: "bg-amber-900/30",
+    orange: "bg-orange-900/30",
+    yellow: "bg-yellow-900/30",
+    green: "bg-green-900/30",
+    blue: "bg-blue-900/30",
+    purple: "bg-purple-900/30",
+    pink: "bg-pink-900/30",
+    red: "bg-red-900/30",
   };
 
   if (isBg) {

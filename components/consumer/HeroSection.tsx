@@ -11,8 +11,8 @@ export function HeroSection() {
     <section className="relative w-full overflow-hidden">
       {/* 배경 그라데이션 장식 */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 -right-1/4 w-[500px] h-[500px] bg-secondary-500/10 dark:bg-secondary-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-primary-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 -right-1/4 w-[500px] h-[500px] bg-secondary-500/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
@@ -36,8 +36,8 @@ export function HeroSection() {
             </div>
 
             {/* 장식 요소들 */}
-            <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary-500/20 dark:bg-primary-500/10 blur-2xl -z-10 animate-pulse" />
-            <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-secondary-500/20 dark:bg-secondary-500/10 blur-3xl -z-10" />
+            <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary-500/10 blur-2xl -z-10 animate-pulse" />
+            <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-secondary-500/10 blur-3xl -z-10" />
             
             
           </div>
@@ -46,19 +46,19 @@ export function HeroSection() {
           {/* 메인 헤드라인 */}
           <h1 className="mx-auto text-center text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary leading-tight tracking-tight">
             <span className="block mt-5">책을 통해</span>
-            <span className="block mt-2 bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-600 dark:from-primary-400 dark:via-primary-300 dark:to-secondary-400 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-primary-400 via-primary-300 to-secondary-400 bg-clip-text text-transparent">
               새로운 인사이트를 얻으며
             </span>
 
             <span className="block mt-5">기록을 통해</span>
-            <span className="block mt-2 bg-gradient-to-r from-secondary-600 via-primary-500 to-primary-600 dark:from-secondary-400 dark:via-primary-300 dark:to-primary-400 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-secondary-400 via-primary-300 to-primary-400 bg-clip-text text-transparent">
               삶을 나답게 살아가며
             </span>
 
             
 
             <span className="block mt-5">대화를 통해</span>
-            <span className="block mt-2 bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-600 dark:from-primary-400 dark:via-primary-300 dark:to-secondary-400 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-primary-400 via-primary-300 to-secondary-400 bg-clip-text text-transparent">
               함께 성장하는 시간을
               <br/>
               만드는 사람

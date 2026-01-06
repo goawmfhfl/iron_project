@@ -7,19 +7,37 @@ import { NotionRenderer } from "./NotionRenderer";
 import { renderRichText } from "../shared/renderRichText";
 import { formatNotionPageId } from "@/lib/utils/notion";
 import {
+  extractCalloutText,
   isThumbnailCallout,
   isDetailCallout,
+  isApplyButtonCallout,
   extractImagesFromCallout,
 } from "@/lib/utils/socialing-notion";
 import { SocialingDetailThumbnail } from "@/components/consumer/SocialingDetailThumbnail";
 import { SocialingDetailImages } from "@/components/consumer/SocialingDetailImages";
+import { SocialingDetailInfo } from "@/components/consumer/SocialingDetailInfo";
 import type { NotionBlock } from "@/lib/types/notion";
+import type { Socialing } from "@/lib/types/socialing";
 
 interface NotionBlockProps {
   block: NotionBlock;
+  /**
+   * 인라인 신청 버튼 렌더러
+   * - "신청버튼" 콜아웃에서 사용
+   */
+  renderApplyButton?: () => JSX.Element;
+  /**
+   * 소셜링 상세 정보를 렌더링하기 위한 데이터
+   * - "상세정보" 콜아웃 등에서 SocialingDetailInfo를 렌더링하는 데 사용
+   */
+  socialing?: Socialing;
 }
 
-export function NotionBlock({ block }: NotionBlockProps) {
+export function NotionBlock({
+  block,
+  renderApplyButton,
+  socialing,
+}: NotionBlockProps) {
   const { type, id } = block;
 
   switch (type) {
@@ -46,7 +64,7 @@ export function NotionBlock({ block }: NotionBlockProps) {
     case "heading_1":
       return (
         <h1 className="text-3xl font-bold text-text-primary mb-4 mt-6 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_1?.rich_text)}
           </span>
         </h1>
@@ -55,7 +73,7 @@ export function NotionBlock({ block }: NotionBlockProps) {
     case "heading_2":
       return (
         <h2 className="text-2xl font-bold text-text-primary mb-3 mt-5 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_2?.rich_text)}
           </span>
         </h2>
@@ -64,7 +82,7 @@ export function NotionBlock({ block }: NotionBlockProps) {
     case "heading_3":
       return (
         <h3 className="text-xl font-semibold text-text-primary mb-2 mt-4 first:mt-0 leading-tight">
-          <span className="box-decoration-clone bg-background-secondary/80 dark:bg-background-secondary/35 px-2 py-1 rounded-md">
+          <span className="box-decoration-clone bg-background-secondary/35 px-2 py-1 rounded-md">
             {renderRichText(block.heading_3?.rich_text)}
           </span>
         </h3>
@@ -93,7 +111,10 @@ export function NotionBlock({ block }: NotionBlockProps) {
             )}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
               <div className="mt-2">
-                <NotionRenderer blocks={block.children} />
+                <NotionRenderer
+                  blocks={block.children}
+                  renderApplyButton={renderApplyButton}
+                />
               </div>
             )}
           </div>
@@ -166,13 +187,27 @@ export function NotionBlock({ block }: NotionBlockProps) {
         return null;
       }
 
-      // "상세페이지" 콜아웃 처리
+      // "상세페이지" 콜아웃 처리 (이미지 상세)
       if (isDetailCallout(block)) {
         const detailImages = extractImagesFromCallout(block);
         if (detailImages.length > 0) {
           return <SocialingDetailImages images={detailImages} />;
         }
         return null;
+      }
+
+      // "상세정보" 콜아웃 처리 (소셜링 정보 카드)
+      if (socialing && extractCalloutText(block).toLowerCase().includes("상세정보")) {
+        return <SocialingDetailInfo socialing={socialing} />;
+      }
+
+      // "신청버튼" 콜아웃 처리
+      if (isApplyButtonCallout(block) && renderApplyButton) {
+        return (
+          <div className="my-6 flex justify-center">
+            {renderApplyButton()}
+          </div>
+        );
       }
 
       // 기본 콜아웃 렌더링
@@ -187,7 +222,10 @@ export function NotionBlock({ block }: NotionBlockProps) {
             )}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
               <div className="mt-2">
-                <NotionRenderer blocks={block.children} />
+                <NotionRenderer
+                  blocks={block.children}
+                  renderApplyButton={renderApplyButton}
+                />
               </div>
             )}
           </div>
@@ -202,7 +240,10 @@ export function NotionBlock({ block }: NotionBlockProps) {
           </summary>
           <div className="ml-4 mt-2">
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <NotionRenderer blocks={block.children} />
+              <NotionRenderer
+                blocks={block.children}
+                renderApplyButton={renderApplyButton}
+              />
             )}
           </div>
         </details>

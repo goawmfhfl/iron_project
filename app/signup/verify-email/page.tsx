@@ -16,9 +16,9 @@ function VerifyEmailContent() {
         <Card elevation={2}>
           <CardHeader>
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-primary-900/30 flex items-center justify-center">
                 <svg
-                  className="w-8 h-8 text-primary-600 dark:text-primary-400"
+                  className="w-8 h-8 text-primary-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -42,7 +42,7 @@ function VerifyEmailContent() {
           <CardContent className="space-y-6">
             <div className="text-center space-y-4">
               <p className="text-text-primary">
-                <span className="font-semibold text-primary-600 dark:text-primary-400">
+                <span className="font-semibold text-primary-400">
                   {email || "등록하신 이메일"}
                 </span>
                 <br />

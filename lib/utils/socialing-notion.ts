@@ -28,6 +28,15 @@ export function isDetailCallout(block: NotionBlock): boolean {
 }
 
 /**
+ * 콜아웃 블록이 "신청버튼" 텍스트를 포함하는지 확인
+ * - 이 콜아웃 위치에 인라인 신청 버튼을 렌더링하는 용도
+ */
+export function isApplyButtonCallout(block: NotionBlock): boolean {
+  const text = extractCalloutText(block);
+  return text.toLowerCase().includes("신청버튼");
+}
+
+/**
  * 이미지 블록에서 URL 추출
  */
 function extractImageUrl(block: NotionBlock): string | null {

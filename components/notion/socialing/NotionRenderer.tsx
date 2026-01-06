@@ -8,15 +8,28 @@
 
 import { NotionBlock } from "./NotionBlock";
 import type { NotionBlock as NotionBlockType } from "@/lib/types/notion";
+import type { Socialing } from "@/lib/types/socialing";
 
 interface NotionRendererProps {
   blocks: NotionBlockType[];
   className?: string;
+  /**
+   * 소셜링 상세 정보 렌더링에 사용되는 데이터
+   * - 특정 콜아웃(예: "상세정보")에서 SocialingDetailInfo 등을 렌더링할 때 사용
+   */
+  socialing?: Socialing;
+  /**
+   * 인라인 신청 버튼을 렌더링하기 위한 콜백
+   * - 특정 콜아웃("신청버튼") 위치에 렌더링
+   */
+  renderApplyButton?: () => JSX.Element;
 }
 
 export function NotionRenderer({
   blocks,
   className,
+  socialing,
+  renderApplyButton,
 }: NotionRendererProps) {
   if (!blocks || blocks.length === 0) {
     return (
@@ -37,7 +50,12 @@ export function NotionRenderer({
         elements.push(
           <ul key={`bullet-${currentBulletList[0].id}`} className="mb-4">
             {currentBulletList.map((block) => (
-              <NotionBlock key={block.id} block={block} />
+              <NotionBlock
+                key={block.id}
+                block={block}
+                socialing={socialing}
+                renderApplyButton={renderApplyButton}
+              />
             ))}
           </ul>
         );
@@ -50,7 +68,12 @@ export function NotionRenderer({
         elements.push(
           <ol key={`numbered-${currentNumberedList[0].id}`} className="mb-4">
             {currentNumberedList.map((block) => (
-              <NotionBlock key={block.id} block={block} />
+              <NotionBlock
+                key={block.id}
+                block={block}
+                socialing={socialing}
+                renderApplyButton={renderApplyButton}
+              />
             ))}
           </ol>
         );
@@ -68,7 +91,14 @@ export function NotionRenderer({
       } else {
         flushBulletList();
         flushNumberedList();
-        elements.push(<NotionBlock key={block.id} block={block} />);
+        elements.push(
+          <NotionBlock
+            key={block.id}
+            block={block}
+            socialing={socialing}
+            renderApplyButton={renderApplyButton}
+          />
+        );
       }
     });
 
@@ -80,7 +110,7 @@ export function NotionRenderer({
 
   return (
     <div className={className}>
-      <article className="prose prose-sm max-w-none dark:prose-invert">
+      <article className="prose prose-sm max-w-none prose-invert">
         {renderBlocks()}
       </article>
     </div>

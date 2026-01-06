@@ -35,13 +35,13 @@ function getTypeBadgeText(type: SocialingType): string {
 function getTypeBadgeColorClass(type: SocialingType): string {
   switch (type) {
     case "CHALLENGE":
-      return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700";
+      return "bg-blue-900/30 text-blue-300 border-blue-700";
     case "SOCIALING":
-      return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700";
+      return "bg-green-900/30 text-green-300 border-green-700";
     case "EVENT":
-      return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700";
+      return "bg-purple-900/30 text-purple-300 border-purple-700";
     default:
-      return "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700";
+      return "bg-gray-900/30 text-gray-300 border-gray-700";
   }
 }
 
@@ -136,7 +136,7 @@ export function SocialingCard({
         <CardContent className="p-4 sm:p-6 flex-1 flex flex-col justify-between min-h-[180px] sm:min-h-[192px]">
           <div className="flex-1">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="text-lg sm:text-xl font-bold text-text-primary line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex-1">
+              <h3 className="text-lg sm:text-xl font-bold text-text-primary line-clamp-2 group-hover:text-primary-400 transition-colors flex-1">
                 {socialing.title}
               </h3>
               {/* Type 뱃지 */}
@@ -199,17 +199,17 @@ export function SocialingCard({
 
               {/* 상태 뱃지 */}
               {socialing.status === "OPEN" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-green-900/30 text-green-300">
                   모집중
                 </span>
               )}
               {socialing.status === "PENDING" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-yellow-900/30 text-yellow-300">
                   예정
                 </span>
               )}
               {socialing.status === "FINISH" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-gray-900/30 text-gray-300">
                   종료
                 </span>
               )}

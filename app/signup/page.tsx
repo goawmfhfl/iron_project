@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
+import { ProfileImageUpload } from "@/components/ui/ProfileImageUpload";
 import { useSignUp, SignUpError } from "@/lib/hooks/useSignUp";
 import {
   validateEmail,
@@ -27,6 +29,7 @@ function SignUpForm() {
     nickname: "",
     phone: "",
     gender: "" as Gender | "",
+    profileImage: null as string | null,
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -91,6 +94,7 @@ function SignUpForm() {
         nickname: formData.nickname,
         phone: formData.phone,
         gender: formData.gender as Gender,
+        profileImage: formData.profileImage,
       });
       
       console.log("handleSubmit - 회원가입 성공:", result);
@@ -126,6 +130,12 @@ function SignUpForm() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <ProfileImageUpload
+                value={formData.profileImage}
+                onChange={(url) => setFormData((prev) => ({ ...prev, profileImage: url }))}
+                error={fieldErrors.profileImage}
+              />
+
               <Input
                 label="닉네임"
                 name="nickname"
@@ -148,10 +158,9 @@ function SignUpForm() {
                 placeholder="example@email.com"
               />
 
-              <Input
+              <PasswordInput
                 label="비밀번호"
                 name="password"
-                type="password"
                 value={formData.password}
                 onChange={handleChange}
                 error={fieldErrors.password}
@@ -159,10 +168,9 @@ function SignUpForm() {
                 placeholder="최소 6자 이상"
               />
 
-              <Input
+              <PasswordInput
                 label="비밀번호 확인"
                 name="confirmPassword"
-                type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 error={fieldErrors.confirmPassword}

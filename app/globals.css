@@ -65,7 +65,7 @@
   }
 
   a {
-    @apply text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors;
+    @apply text-primary-400 hover:text-primary-300 transition-colors;
   }
 }
 
