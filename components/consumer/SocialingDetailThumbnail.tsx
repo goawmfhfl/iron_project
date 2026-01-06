@@ -12,12 +12,10 @@ import "swiper/css/thumbs";
 
 interface SocialingDetailThumbnailProps {
   images: string[];
-  status?: "OPEN" | "PENDING" | "FINISH" | "STAGING";
 }
 
 export function SocialingDetailThumbnail({
   images,
-  status,
 }: SocialingDetailThumbnailProps) {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -58,7 +56,7 @@ export function SocialingDetailThumbnail({
         >
           {images.map((imageUrl, index) => (
             <SwiperSlide key={`${imageUrl}-${index}`}>
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-surface-elevated">
+              <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-surface-elevated">
                 <Image
                   src={imageUrl}
                   alt={`썸네일 ${index + 1}`}
@@ -67,16 +65,6 @@ export function SocialingDetailThumbnail({
                   sizes="(max-width: 768px) 100vw, 1280px"
                   priority={index === 0}
                 />
-                {/* PENDING 상태일 때 오버레이 */}
-                {status === "PENDING" && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                    <div className="bg-yellow-500/90 dark:bg-yellow-600/90 px-6 py-3 rounded-lg backdrop-blur-sm">
-                      <span className="text-white font-bold text-xl tracking-wide">
-                        오픈 예정
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             </SwiperSlide>
           ))}

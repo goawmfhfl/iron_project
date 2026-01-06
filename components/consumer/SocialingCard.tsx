@@ -129,16 +129,6 @@ export function SocialingCard({
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 320px, 384px"
             />
-            {/* PENDING 상태일 때 오버레이 */}
-            {socialing.status === "PENDING" && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                <div className="bg-yellow-500/90 dark:bg-yellow-600/90 px-5 py-2.5 rounded-lg backdrop-blur-sm">
-                  <span className="text-white font-bold text-lg tracking-wide">
-                    오픈 예정
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
