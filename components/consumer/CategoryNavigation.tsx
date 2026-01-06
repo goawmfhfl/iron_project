@@ -10,6 +10,21 @@ interface CategoryNavigationProps {
   currentSecondCategory?: string | null;
 }
 
+// Notion에서 오는 카테고리 코드 값을 한국어 레이블로 매핑
+function mapCategoryLabel(value: string): string {
+  const upper = value.toUpperCase();
+  switch (upper) {
+    case "FEEDBACK":
+      return "피드백";
+    case "INSIGHT":
+      return "인사이트";
+    case "CONTENTS":
+      return "컨텐츠";
+    default:
+      return value;
+  }
+}
+
 export function CategoryNavigation({
   firstCategories,
   secondCategories,
@@ -63,10 +78,10 @@ export function CategoryNavigation({
           onClick={() => handleFirstCategoryClick(null)}
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-            "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500",
             !currentFirstCategory
               ? "bg-primary-500 text-white shadow-elevation-1"
-              : "bg-surface-elevated text-text-secondary border border-border hover:bg-surface-hover"
+              : "bg-surface-elevated text-text-secondary hover:bg-surface-hover"
           )}
         >
           전체
@@ -77,13 +92,13 @@ export function CategoryNavigation({
             onClick={() => handleFirstCategoryClick(category)}
             className={cn(
               "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-              "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500",
               currentFirstCategory === category
                 ? "bg-primary-500 text-white shadow-elevation-1"
-                : "bg-surface-elevated text-text-secondary border border-border hover:bg-surface-hover"
+                : "bg-surface-elevated text-text-secondary hover:bg-surface-hover"
             )}
           >
-            {category}
+            {mapCategoryLabel(category)}
           </button>
         ))}
       </div>
@@ -97,11 +112,11 @@ export function CategoryNavigation({
               onClick={() => handleSecondCategoryClick(null)}
               className={cn(
                 "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
-                "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent-500",
                 // currentSecondCategory가 null이고 URL에 secondCategory가 없을 때만 활성화
                 !currentSecondCategory && !searchParams.get("secondCategory")
                   ? "bg-accent-400 text-white shadow-elevation-1"
-                  : "bg-surface text-text-tertiary border border-border/50 hover:bg-surface-hover"
+                  : "bg-surface text-text-tertiary hover:bg-surface-hover"
               )}
             >
               전체
@@ -112,13 +127,13 @@ export function CategoryNavigation({
                 onClick={() => handleSecondCategoryClick(category)}
                 className={cn(
                   "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
-                  "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent-500",
                   currentSecondCategory === category
                     ? "bg-accent-400 text-white shadow-elevation-1"
-                    : "bg-surface text-text-tertiary border border-border/50 hover:bg-surface-hover"
+                    : "bg-surface text-text-tertiary hover:bg-surface-hover"
                 )}
               >
-                {category}
+                {mapCategoryLabel(category)}
               </button>
             ))}
           </div>

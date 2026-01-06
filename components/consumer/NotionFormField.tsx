@@ -200,7 +200,16 @@ export function NotionFormFieldRenderer({
                         onChange(currentValues.filter((v) => v !== option));
                       }
                     }}
-                    className="w-4 h-4 text-primary-600 border-border rounded focus:ring-primary-500"
+                    className={cn(
+                      // 공통 Checkbox 컴포넌트와 톤을 맞춘 올리브 그린 스타일
+                      "w-4 h-4 rounded border-2 bg-surface text-primary-600",
+                      "focus:ring-2 focus:ring-primary-500 focus:ring-offset-0",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
+                      "transition-colors",
+                      isDisabled
+                        ? "border-border"
+                        : "border-border hover:border-primary-400"
+                    )}
                   />
                   <span className="text-sm text-text-primary">{option}</span>
                 </label>

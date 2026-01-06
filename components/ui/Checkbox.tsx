@@ -19,13 +19,15 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               id={checkboxId}
               ref={ref}
               className={cn(
+                // 기본 박스 + 올리브 그린 계열 체크 컬러
                 "w-4 h-4 rounded border-2 bg-surface text-primary-600",
+                // 포커스 링도 올리브 그린 계열로
                 "focus:ring-2 focus:ring-primary-500 focus:ring-offset-0",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 "transition-colors",
                 error
                   ? "border-error focus:ring-error"
-                  : "border-border hover:border-primary-300",
+                  : "border-border hover:border-primary-400",
                 className
               )}
               {...props}

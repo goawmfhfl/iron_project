@@ -104,13 +104,19 @@ export function NotionBlock({
 
     case "quote":
       return (
-        <blockquote className="border-l-4 border-primary-500 pl-4 py-2 my-4 italic text-text-secondary bg-surface-elevated rounded-r">
-          <div>
+        <blockquote className="relative my-6 rounded-2xl border border-border bg-surface-elevated/80 px-4 sm:px-6 py-4 shadow-elevation-1">
+          {/* 인용 마크 아이콘 */}
+          <div className="absolute -top-3 left-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-500/10 text-primary-400">
+            <span className="text-base font-semibold leading-none">“</span>
+          </div>
+          <div className="mt-1 text-base text-text-primary leading-7">
             {block.quote?.rich_text && (
-              <p className="mb-2 leading-normal">{renderRichText(block.quote?.rich_text)}</p>
+              <p className="whitespace-pre-wrap">
+                {renderRichText(block.quote?.rich_text)}
+              </p>
             )}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <div className="mt-2">
+              <div className="mt-3 pt-3 border-t border-border/60">
                 <NotionRenderer
                   blocks={block.children}
                   renderApplyButton={renderApplyButton}

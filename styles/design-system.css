@@ -1,70 +1,76 @@
 /* Design System CSS Variables */
 
 :root {
-  /* Primary Colors - Blue (Dark Mode Optimized) */
-  --color-primary-50: #1e3a8a;
-  --color-primary-100: #1e40af;
-  --color-primary-200: #1d4ed8;
-  --color-primary-300: #2563eb;
-  --color-primary-400: #3b82f6;
-  --color-primary-500: #60a5fa;
-  --color-primary-600: #93c5fd;
-  --color-primary-700: #bfdbfe;
-  --color-primary-800: #dbeafe;
-  --color-primary-900: #eff6ff;
+  /* Primary Colors - Sage / Olive Green (브랜드 그린 계열) */
+  /* 초록초록한 기본 톤: 세이지 그린 & 올리브 그린 중심 팔레트 */
+  --color-primary-50: #f1f2ec;
+  --color-primary-100: #e4e6d9;
+  --color-primary-200: #d3d9c4;
+  --color-primary-300: #b9c0a3;
+  --color-primary-400: #9da688;
+  /* 메인 세이지 그린 */
+  --color-primary-500: #7f8f7a; /* 세이지 그린 */
+  --color-primary-600: #6f7f68;
+  /* 포인트 올리브 그린 */
+  --color-primary-700: #5f6b3a; /* 올리브 그린 */
+  --color-primary-800: #4b5530;
+  --color-primary-900: #343b22;
 
-  /* Secondary Colors - Purple (Dark Mode Optimized) */
-  --color-secondary-50: #581c87;
-  --color-secondary-100: #6b21a8;
-  --color-secondary-200: #7e22ce;
-  --color-secondary-300: #9333ea;
-  --color-secondary-400: #a855f7;
-  --color-secondary-500: #c084fc;
-  --color-secondary-600: #d8b4fe;
-  --color-secondary-700: #e9d5ff;
-  --color-secondary-800: #f3e8ff;
-  --color-secondary-900: #faf5ff;
+  /* Secondary Colors - Mustard Yellow (옐로우 포인트) */
+  --color-secondary-50: #f6f0df;
+  --color-secondary-100: #ecddb8;
+  --color-secondary-200: #e0c68a;
+  --color-secondary-300: #d4af5c;
+  --color-secondary-400: #c89c42;
+  --color-secondary-500: #b38e3a; /* 머스터드 옐로우 (포인트) */
+  --color-secondary-600: #947331;
+  --color-secondary-700: #735828;
+  --color-secondary-800: #524020;
+  --color-secondary-900: #342918;
 
-  /* Accent Colors - Teal (Dark Mode Optimized) */
-  --color-accent-50: #134e4a;
-  --color-accent-100: #115e59;
-  --color-accent-200: #0f766e;
-  --color-accent-300: #0d9488;
-  --color-accent-400: #14b8a6;
-  --color-accent-500: #2dd4bf;
-  --color-accent-600: #5eead4;
-  --color-accent-700: #99f6e4;
-  --color-accent-800: #ccfbf1;
-  --color-accent-900: #f0fdfa;
+  /* Accent Colors - Dusty / Navy Blue (블루 & 네이비 포인트) */
+  --color-accent-50: #eef2f5;
+  --color-accent-100: #d8e0e9;
+  --color-accent-200: #bcc8d7;
+  --color-accent-300: #9caac1;
+  --color-accent-400: #7f8fa9;
+  --color-accent-500: #6f859c; /* 더스티 블루 */
+  --color-accent-600: #5e7085;
+  --color-accent-700: #2e3a4f; /* 네이비 블루 */
+  --color-accent-800: #242d3e;
+  --color-accent-900: #181f2b;
 
-  /* Background Colors */
-  --color-background: #0f172a;
-  --color-background-secondary: #1e293b;
+  /* Background Colors (따뜻한 뉴트럴 배경) */
+  --color-background: #e4e2dd; /* 메인 배경 */
+  --color-background-secondary: #d8d3c7;
 
-  /* Surface Colors */
-  --color-surface: #1e293b;
-  --color-surface-elevated: #334155;
-  --color-surface-hover: #475569;
-  --color-border: #334155;
+  /* Surface Colors (카드/모달 등) */
+  --color-surface: #f5f3ee;
+  --color-surface-elevated: #ffffff;
+  --color-surface-hover: #e0ddd5;
+  --color-border: #c4beb2;
 
   /* Text Colors */
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-tertiary: #94a3b8;
-  --color-text-inverse: #0f172a;
+  --color-text-primary: #2b2b2b; /* 기본 텍스트 */
+  --color-text-secondary: #4b4b4b;
+  --color-text-tertiary: #7a7a7a;
+  --color-text-inverse: #f7f5f0;
 
-  /* Status Colors */
-  --color-success: #34d399;
-  --color-success-light: #065f46;
-  --color-success-dark: #10b981;
+  /* Status / Emphasis Colors */
+  /* 성공 계열은 그린 톤을 재사용 */
+  --color-success: #7f8f7a;
+  --color-success-light: #b9c0a3;
+  --color-success-dark: #5f6b3a;
 
-  --color-warning: #fbbf24;
-  --color-warning-light: #78350f;
-  --color-warning-dark: #f59e0b;
+  /* 경고는 머스터드 옐로우 계열 */
+  --color-warning: #b38e3a;
+  --color-warning-light: #d4af5c;
+  --color-warning-dark: #735828;
 
-  --color-error: #f87171;
-  --color-error-light: #7f1d1d;
-  --color-error-dark: #ef4444;
+  /* 에러/강조는 테리코타 톤 */
+  --color-error: #b5674a; /* 테리코타 */
+  --color-error-light: #d58a6f;
+  --color-error-dark: #8b4a35;
 
   /* Shadows - Elevation System */
   --shadow-elevation-0: none;

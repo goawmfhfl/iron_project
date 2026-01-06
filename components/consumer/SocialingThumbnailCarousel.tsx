@@ -30,7 +30,7 @@ export function SocialingThumbnailCarousel({
     const content = (
       <div className="group relative">
         <div className="relative overflow-hidden rounded-2xl border border-border bg-background shadow-elevation-1">
-          <div className="relative w-full aspect-[16/9]">
+          <div className="relative w-full aspect-square">
             {thumbnail.coverImage ? (
               <Image
                 src={thumbnail.coverImage}
@@ -42,6 +42,13 @@ export function SocialingThumbnailCarousel({
             ) : (
               <div className="w-full h-full bg-surface-elevated flex items-center justify-center">
                 <span className="text-text-tertiary">이미지 없음</span>
+              </div>
+            )}
+            {thumbnail.status === "PENDING" && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span className="px-4 py-2 rounded-full bg-black/70 text-white text-base sm:text-lg font-semibold tracking-tight">
+                  소셜링 준비중
+                </span>
               </div>
             )}
           </div>

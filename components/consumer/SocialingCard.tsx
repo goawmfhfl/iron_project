@@ -35,13 +35,16 @@ function getTypeBadgeText(type: SocialingType): string {
 function getTypeBadgeColorClass(type: SocialingType): string {
   switch (type) {
     case "CHALLENGE":
-      return "bg-blue-900/30 text-blue-300 border-blue-700";
+      // 챌린지: 머스터드 옐로우 계열로 따뜻한 포인트
+      return "bg-secondary-500/15 text-secondary-700 border-secondary-500/40";
     case "SOCIALING":
-      return "bg-green-900/30 text-green-300 border-green-700";
+      // 소셜링: 세이지 그린 계열
+      return "bg-primary-500/15 text-primary-700 border-primary-600/40";
     case "EVENT":
-      return "bg-purple-900/30 text-purple-300 border-purple-700";
+      // 이벤트: 더스티 블루/네이비 계열
+      return "bg-accent-500/15 text-accent-700 border-accent-600/40";
     default:
-      return "bg-gray-900/30 text-gray-300 border-gray-700";
+      return "bg-surface-elevated text-text-secondary border-border/60";
   }
 }
 
@@ -53,9 +56,9 @@ function getStatusStyleClass(status: string): string {
     case "OPEN":
       return "";
     case "PENDING":
-      return "opacity-75";
+      return "opacity-85";
     case "FINISH":
-      return "opacity-60";
+      return "opacity-70";
     default:
       return "";
   }
@@ -121,7 +124,13 @@ export function SocialingCard({
       <div className="flex flex-col sm:flex-row">
         {/* 이미지 영역 */}
         {socialing.coverImage && (
-          <div className="relative w-full sm:w-64 md:w-80 lg:w-96 aspect-[16/9] sm:flex-shrink-0 overflow-hidden sm:rounded-l-lg rounded-t-lg sm:rounded-tr-none bg-surface-elevated">
+          <div className="relative w-full sm:w-64 md:w-80 lg:w-96 aspect-square sm:flex-shrink-0 overflow-hidden sm:rounded-l-lg rounded-t-lg sm:rounded-tr-none bg-surface-elevated">
+            {/* 예정 상태 리본 뱃지 (상단 라벨) */}
+            {socialing.status === "PENDING" && (
+              <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md bg-warning/90 text-text-inverse text-xs font-semibold shadow-elevation-1">
+                예정
+              </div>
+            )}
             <Image
               src={socialing.coverImage}
               alt={socialing.title}
@@ -129,6 +138,14 @@ export function SocialingCard({
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 320px, 384px"
             />
+            {/* 예정 상태일 때 강한 dim + 중앙 텍스트 오버레이 */}
+            {socialing.status === "PENDING" && (
+              <div className="absolute inset-0 z-10 bg-black/65 flex items-center justify-center">
+                <span className="px-4 py-2 rounded-full bg-black/80 text-white text-sm sm:text-base font-semibold tracking-tight">
+                  소셜링 준비중
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -199,17 +216,17 @@ export function SocialingCard({
 
               {/* 상태 뱃지 */}
               {socialing.status === "OPEN" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-green-900/30 text-green-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-success/15 text-success-dark border border-success/40">
                   모집중
                 </span>
               )}
               {socialing.status === "PENDING" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-yellow-900/30 text-yellow-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-warning/15 text-warning-dark border border-warning/40">
                   예정
                 </span>
               )}
               {socialing.status === "FINISH" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-gray-900/30 text-gray-300">
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-surface text-text-tertiary border border-border/60">
                   종료
                 </span>
               )}
