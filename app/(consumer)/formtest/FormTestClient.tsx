@@ -292,7 +292,7 @@ export function FormTestClient() {
               </p>
               <p>
                 <span className="font-medium">필터링된 속성:</span>{" "}
-                {Object.keys(rawData.properties || {}).filter(
+                {Object.entries(rawData.properties || {}).filter(
                   ([key, prop]: [string, any]) => !isSupportedType(prop.type)
                 ).length}
                 개
