@@ -27,6 +27,20 @@ export default function ConsumerLayout({
     // { href: "/community", label: "커뮤니티" }, // 개발 예정
   ];
 
+  // 네비게이션 아이템 활성화 여부 확인 함수
+  const isActive = (href: string): boolean => {
+    if (href === "/") {
+      // 홈은 정확히 "/"이거나, 소셜링/컨텐츠 상세페이지일 때 활성화
+      return (
+        pathname === "/" ||
+        pathname.startsWith("/social/") ||
+        pathname.startsWith("/contents/")
+      );
+    }
+    // 다른 아이템은 정확히 일치할 때만 활성화
+    return pathname === href;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header
@@ -52,7 +66,7 @@ export default function ConsumerLayout({
                     href={item.href}
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      pathname === item.href
+                      isActive(item.href)
                         ? "bg-primary-500 !text-white shadow-elevation-1"
                         : "text-text-secondary hover:text-text-primary hover:bg-primary-100"
                     )}
@@ -70,7 +84,7 @@ export default function ConsumerLayout({
                     href={item.href}
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      pathname === item.href
+                      isActive(item.href)
                         ? "bg-primary-500 !text-white shadow-elevation-1"
                         : "text-text-secondary hover:text-text-primary hover:bg-primary-100"
                     )}

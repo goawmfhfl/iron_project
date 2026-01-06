@@ -80,20 +80,21 @@ function colorToClasses(color?: NotionColor): string {
   };
 
   const bgMap: Record<string, string> = {
-    gray: "bg-gray-800/60",
-    brown: "bg-amber-900/30",
-    orange: "bg-orange-900/30",
-    yellow: "bg-yellow-900/30",
-    green: "bg-green-900/30",
-    blue: "bg-blue-900/30",
-    purple: "bg-purple-900/30",
-    pink: "bg-pink-900/30",
-    red: "bg-red-900/30",
+    // 프로젝트 색상 팔레트에 맞춘 배경색 (50% 불투명도, 50% 투명도)
+    gray: "bg-[#6b7280]/50", // 중립 회색 (slate-600)
+    brown: "bg-[#b5674a]/50", // 테리코타 계열 (프로젝트 error 색상)
+    orange: "bg-[#b38e3a]/50", // 머스터드 옐로우 계열 (프로젝트 secondary-500)
+    yellow: "bg-[#b38e3a]/50", // 머스터드 옐로우 계열 (프로젝트 secondary-500)
+    green: "bg-[#7f8f7a]/50", // 세이지 그린 (프로젝트 primary-500)
+    blue: "bg-[#6f859c]/50", // 더스티 블루 (프로젝트 accent-500)
+    purple: "bg-[#8b6f9d]/50", // 따뜻한 보라 (보라-600 계열)
+    pink: "bg-[#c97a8b]/50", // 따뜻한 분홍 (로즈-500 계열)
+    red: "bg-[#b5674a]/50", // 테리코타 계열 (프로젝트 error 색상)
   };
 
   if (isBg) {
-    // background 컬러는 보통 약간의 패딩/라운딩이 있어야 "하이라이트"처럼 보입니다.
-    return `${bgMap[base] ?? ""} px-1 rounded`;
+    // background 컬러는 하얀색 텍스트와 적절한 패딩/라운딩으로 하이라이트처럼 보이도록 합니다.
+    return `${bgMap[base] ?? ""} text-white px-1.5 py-0.5 rounded`;
   }
 
   return fgMap[base] ?? "";
@@ -102,7 +103,7 @@ function colorToClasses(color?: NotionColor): string {
 function annotationsToClasses(a?: NotionAnnotations): string {
   if (!a) return "";
   return [
-    a.bold ? "font-semibold" : "",
+    a.bold ? "font-bold" : "",
     a.italic ? "italic" : "",
     a.underline ? "underline underline-offset-2" : "",
     a.strikethrough ? "line-through" : "",
