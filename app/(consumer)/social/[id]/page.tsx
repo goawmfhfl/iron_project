@@ -6,7 +6,13 @@ import {
 import { formatNotionPageId } from "@/lib/utils/notion";
 import { SocialingDetailClient } from "./SocialingDetailClient";
 
-export const revalidate = 600; // 10분마다 재생성
+// 개발 환경에서는 빠른 테스트를 위해 revalidate 주기를 짧게,
+// 운영 환경에서는 1일(86400초) 기준으로 캐싱
+const isDev =
+  process.env.NEXT_PUBLIC_NODE_ENV === "development" ||
+  process.env.NODE_ENV === "development";
+
+export const revalidate = isDev ? 3 : 86400;
 
 interface SocialingDetailPageProps {
   params: Promise<{ id: string }> | { id: string };

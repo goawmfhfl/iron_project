@@ -30,7 +30,6 @@ export interface NotionFormField {
 export interface NotionFormSchema {
   databaseId: string;
   fields: NotionFormField[];
-  submitUrl: string;
   coverImage?: string | null; // 폼 썸네일
 }
 

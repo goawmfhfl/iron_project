@@ -10,7 +10,13 @@ import { ContentDetailClient } from "./ContentDetailClient";
 import { getNotionContentsDatabase } from "@/lib/services/notion-service.server";
 import type { ContentStatus } from "@/lib/types/notion-content";
 
-export const revalidate = 3600; // 1시간마다 재생성
+// 컨텐츠 상세 페이지는 상대적으로 자주 바뀌지 않으므로
+// 개발: 3초, 운영: 1일(86400초) 주기로 재생성
+const isDev =
+  process.env.NEXT_PUBLIC_NODE_ENV === "development" ||
+  process.env.NODE_ENV === "development";
+
+export const revalidate = isDev ? 3 : 86400;
 
 /**
  * 모든 컨텐츠 페이지 ID를 반환하여 정적 페이지 생성

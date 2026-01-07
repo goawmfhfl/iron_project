@@ -4,85 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { FormFunnel } from "@/components/consumer/FormFunnel";
 import { useModalStore } from "@/lib/stores/modal-store";
-import type { NotionFormSchema, FormDatabaseType } from "@/lib/types/notion-form";
 
 interface SocialingApplyFormProps {
-  formSchema: NotionFormSchema;
   socialingId: string;
-  formDatabaseType: FormDatabaseType;
 }
 
-export function SocialingApplyForm({
-  formSchema,
-  socialingId,
-  formDatabaseType,
-}: SocialingApplyFormProps) {
+export function SocialingApplyForm({ socialingId }: SocialingApplyFormProps) {
   const router = useRouter();
   const { openModal, closeModal } = useModalStore();
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-
-  const handleFieldChange = (fieldId: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
-    if (errors[fieldId]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[fieldId];
-        return next;
-      });
-    }
-  };
-
-  const validateAllFields = (): boolean => {
-    const nextErrors: Record<string, string> = {};
-
-    formSchema.fields.forEach((field) => {
-      if (!field.required) return;
-      const value = formData[field.id];
-      if (
-        value === undefined ||
-        value === null ||
-        value === "" ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        nextErrors[field.id] = `${field.name}을(를) 입력해주세요.`;
-      }
-    });
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (currentStep < formSchema.fields.length) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
 
   const handleSubmit = async () => {
-    if (!validateAllFields()) {
-      openModal({
-        type: "CUSTOM",
-        title: "입력 오류",
-        message: "필수 항목을 모두 입력해주세요.",
-        primaryAction: {
-          label: "확인",
-          onClick: () => closeModal(),
-        },
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/socialing/apply", {
@@ -90,10 +23,6 @@ export function SocialingApplyForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           socialing_id: socialingId,
-          form_database_type: formDatabaseType,
-          form_database_id: formSchema.databaseId,
-          form_data: formData,
-          form_schema_snapshot: formSchema, // 신청 시점의 스키마 스냅샷 저장
         }),
       });
 
@@ -135,18 +64,24 @@ export function SocialingApplyForm({
 
   return (
     <Card elevation={1}>
+      <CardHeader>
+        <h2 className="text-xl font-bold text-text-primary">소셜링 신청</h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          회원가입 시 입력한 정보를 기반으로 신청이 진행됩니다. 아래 버튼을 눌러
+          신청을 완료해주세요.
+        </p>
+      </CardHeader>
       <CardContent className="pt-0">
-        <FormFunnel
-          fields={formSchema.fields}
-          formData={formData}
-          errors={errors}
-          onFieldChange={handleFieldChange}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onSubmit={handleSubmit}
-          currentStep={currentStep}
-          socialingId={socialingId}
-        />
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            className="px-8 py-3 text-base font-semibold"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "신청 중..." : "신청하기"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

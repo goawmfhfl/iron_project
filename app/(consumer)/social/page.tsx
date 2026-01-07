@@ -8,7 +8,13 @@ import { SocialingSection } from "@/components/consumer/SocialingSection";
 import { Card, CardContent } from "@/components/ui/Card";
 import type { SocialingType } from "@/lib/types/socialing";
 
-export const revalidate = 60; // 1분마다 재생성
+// 소셜링 리스트는 상태 변화가 잦으므로
+// 개발 환경: 3초, 운영 환경: 1시간 기준으로 재생성
+const isDev =
+  process.env.NEXT_PUBLIC_NODE_ENV === "development" ||
+  process.env.NODE_ENV === "development";
+
+export const revalidate = isDev ? 3 : 3600;
 
 async function SocialingContent() {
   try {

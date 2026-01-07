@@ -14,7 +14,13 @@ import { createClient } from "@/lib/supabase/server";
 import { checkContentAccess } from "@/lib/services/content-access";
 import type { UserRole } from "@/lib/types/user";
 
-export const revalidate = 3600; // 1시간마다 재생성
+// 컨텐츠 리스트는 상태 변화가 상대적으로 잦은 편이므로
+// 개발: 3초, 운영: 1시간 주기로 재생성
+const isDev =
+  process.env.NEXT_PUBLIC_NODE_ENV === "development" ||
+  process.env.NODE_ENV === "development";
+
+export const revalidate = isDev ? 3 : 3600;
 
 interface ContentsPageProps {
   searchParams: Promise<{ 

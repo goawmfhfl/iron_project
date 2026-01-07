@@ -15,14 +15,9 @@ export async function POST(request: NextRequest) {
       form_schema_snapshot,
     } = body || {};
 
-    if (
-      !socialing_id ||
-      !form_database_type ||
-      !form_database_id ||
-      !form_data
-    ) {
+    if (!socialing_id) {
       return NextResponse.json(
-        { error: "필수 값이 누락되었습니다." },
+        { error: "socialing_id는 필수입니다." },
         { status: 400 }
       );
     }
@@ -44,7 +39,10 @@ export async function POST(request: NextRequest) {
     // 인증된 사용자 정보 필수 필드로 설정
     const user_id = user.id;
     const user_email = user.email || null;
-    const user_name = (user.user_metadata?.user_name as string) || null;
+    const user_name =
+      (user.user_metadata?.nickname as string) ||
+      (user.user_metadata?.user_name as string) ||
+      null;
 
     // 소셜링 제목 가져오기
     let socialing_title: string | null = null;
@@ -57,12 +55,27 @@ export async function POST(request: NextRequest) {
       console.error("소셜링 제목 조회 실패:", error);
     }
 
+    // 폼 기반 신청은 더 이상 사용하지 않으므로, 회원/소셜링 정보를 기반으로 최소 form_data 구성
+    const safeFormDatabaseType =
+      (form_database_type as FormDatabaseType | undefined) ?? "DORAN_BOOK";
+    const safeFormDatabaseId =
+      (form_database_id as string | undefined) ?? "signup_profile";
+
+    const baseFormData =
+      form_data && typeof form_data === "object"
+        ? form_data
+        : ({
+            source: "signup_profile",
+            user_email,
+            user_name,
+          } as Record<string, any>);
+
     const application = await createSocialingApplication({
       socialing_id,
       socialing_title,
-      form_database_type: form_database_type as FormDatabaseType,
-      form_database_id,
-      form_data,
+      form_database_type: safeFormDatabaseType,
+      form_database_id: safeFormDatabaseId,
+      form_data: baseFormData,
       form_schema_snapshot: form_schema_snapshot || null,
       user_id,
       user_email,
