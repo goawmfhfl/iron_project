@@ -1,4 +1,4 @@
-import type { FormDatabaseType, NotionFormSchema } from "@/lib/types/notion-form";
+import type { NotionFormSchema } from "@/lib/types/notion-form";
 
 export type ApplicationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -6,7 +6,7 @@ export interface SocialingApplication {
   id: string;
   socialing_id: string;
   socialing_title: string | null;
-  form_database_type: FormDatabaseType;
+  form_database_type: string;
   form_database_id: string;
   application_round: string | null;
   status: ApplicationStatus;
@@ -22,7 +22,7 @@ export interface SocialingApplication {
 export interface CreateSocialingApplicationInput {
   socialing_id: string;
   socialing_title?: string | null;
-  form_database_type: FormDatabaseType;
+  form_database_type: string;
   form_database_id: string;
   application_round?: string | null;
   form_data: Record<string, any>; // JSONB: 폼 필드별 입력값
@@ -33,7 +33,7 @@ export interface CreateSocialingApplicationInput {
 }
 
 export interface GetSocialingApplicationsParams {
-  form_database_type?: FormDatabaseType;
+  form_database_type?: string;
   status?: ApplicationStatus;
   start_date?: string;
   end_date?: string;

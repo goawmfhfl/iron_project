@@ -26,6 +26,7 @@ export interface Socialing {
   participationFee: number | null;
   location: string | null;
   coverImage: string | null;
+  question?: string | null;
   createdAt: string;
   updatedAt: string;
 }

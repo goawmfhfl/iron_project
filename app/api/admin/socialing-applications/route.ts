@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { FormDatabaseType } from "@/lib/types/notion-form";
 import type { ApplicationStatus } from "@/lib/types/socialing-apply";
 
 export async function GET(request: NextRequest) {
@@ -27,8 +26,8 @@ export async function GET(request: NextRequest) {
       Math.max(1, Number(searchParams.get("pageSize") || 20))
     );
 
-    const formDatabaseType = (searchParams.get("form_database_type") ||
-      "") as FormDatabaseType | "";
+    const formDatabaseType =
+      (searchParams.get("form_database_type") || "") || "";
     const status = (searchParams.get("status") || "") as ApplicationStatus | "";
     const startDate = searchParams.get("start_date") || "";
     const endDate = searchParams.get("end_date") || "";

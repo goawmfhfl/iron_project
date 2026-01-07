@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createSocialingApplication } from "@/lib/services/socialing-apply-service";
 import { getSocialingByPageId } from "@/lib/services/notion-service.server";
-import type { FormDatabaseType } from "@/lib/types/notion-form";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +12,7 @@ export async function POST(request: NextRequest) {
       form_database_id,
       form_data,
       form_schema_snapshot,
+      question_answer,
     } = body || {};
 
     if (!socialing_id) {
@@ -57,18 +57,22 @@ export async function POST(request: NextRequest) {
 
     // 폼 기반 신청은 더 이상 사용하지 않으므로, 회원/소셜링 정보를 기반으로 최소 form_data 구성
     const safeFormDatabaseType =
-      (form_database_type as FormDatabaseType | undefined) ?? "DORAN_BOOK";
+      (form_database_type as string | undefined) ?? "DEFAULT";
     const safeFormDatabaseId =
       (form_database_id as string | undefined) ?? "signup_profile";
 
-    const baseFormData =
+    let baseFormData =
       form_data && typeof form_data === "object"
-        ? form_data
+        ? { ...(form_data as Record<string, any>) }
         : ({
             source: "signup_profile",
             user_email,
             user_name,
           } as Record<string, any>);
+
+    if (typeof question_answer === "string" && question_answer.trim()) {
+      baseFormData.question_answer = question_answer.trim();
+    }
 
     const application = await createSocialingApplication({
       socialing_id,

@@ -75,3 +75,19 @@
   }
 }
 
+@layer components {
+  /* 체크박스 스타일: 체크되지 않았을 때 흰색 배경 유지 */
+  input[type="checkbox"] {
+    background-color: var(--color-surface-elevated) !important;
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: var(--color-primary-600) !important;
+    border-color: var(--color-primary-600) !important;
+  }
+  
+  input[type="checkbox"]:not(:checked) {
+    background-color: var(--color-surface-elevated) !important;
+  }
+}
+

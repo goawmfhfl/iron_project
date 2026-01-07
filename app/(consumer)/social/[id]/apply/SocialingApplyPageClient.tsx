@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/Card";
 import { SocialingApplyForm } from "./SocialingApplyForm";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { FormDatabaseType } from "@/lib/types/notion-form";
+import type { Socialing } from "@/lib/types/socialing";
 
 interface SocialingApplyPageClientProps {
   socialingId: string;
-  formDatabaseType?: FormDatabaseType;
+  socialing: Socialing | null;
   socialingCoverImage?: string | null; // 소셜링 coverImage (fallback용)
 }
 
 export function SocialingApplyPageClient({
   socialingId,
-  formDatabaseType = "DORAN_BOOK",
+  socialing,
   socialingCoverImage = null,
 }: SocialingApplyPageClientProps) {
   const router = useRouter();
@@ -64,6 +64,7 @@ export function SocialingApplyPageClient({
 
       <SocialingApplyForm
         socialingId={socialingId}
+        socialing={socialing}
       />
     </div>
   );

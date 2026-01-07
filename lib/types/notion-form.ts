@@ -32,6 +32,3 @@ export interface NotionFormSchema {
   fields: NotionFormField[];
   coverImage?: string | null; // 폼 썸네일
 }
-
-export type FormDatabaseType = "DORAN_BOOK" | "EVENT" | "VIVID";
-

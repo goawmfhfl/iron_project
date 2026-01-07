@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import type { FormDatabaseType } from "@/lib/types/notion-form";
 import type { ApplicationStatus, SocialingApplication } from "@/lib/types/socialing-apply";
 
 export default function SocialingApplicationsPage() {
@@ -20,7 +19,7 @@ export default function SocialingApplicationsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const [formDatabaseType, setFormDatabaseType] = useState<FormDatabaseType | "">("");
+  const [formDatabaseType, setFormDatabaseType] = useState<string>("");
   const [status, setStatus] = useState<ApplicationStatus | "">("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -77,7 +76,7 @@ export default function SocialingApplicationsPage() {
     return <span className={cn("inline-flex px-2 py-1 rounded text-xs font-medium", cls)}>{label}</span>;
   };
 
-  const formTypeLabel = (t: FormDatabaseType) => {
+  const formTypeLabel = (t: string) => {
     if (t === "DORAN_BOOK") return "도란책방";
     if (t === "EVENT") return "이벤트";
     if (t === "VIVID") return "비비드";

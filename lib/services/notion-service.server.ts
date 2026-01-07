@@ -661,6 +661,7 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
   let eventDate: EventDate | null = null;
   let participationFee: number | null = null;
   let location: string | null = null;
+  let question: string | null = null;
 
   for (const [key, value] of Object.entries(page.properties || {})) {
     const prop = value as any;
@@ -668,6 +669,11 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
     // description 찾기
     if (key.toLowerCase() === "description" && prop.type === "rich_text") {
       description = extractTextFromProperty(prop);
+    }
+
+    // question 찾기
+    if (key.toLowerCase() === "question" && prop.type === "rich_text") {
+      question = extractTextFromProperty(prop);
     }
 
     // status 찾기
@@ -718,6 +724,7 @@ function parseNotionPageToSocialing(page: any): Socialing | null {
     participationFee,
     location,
     coverImage,
+    question,
     createdAt,
     updatedAt,
   };

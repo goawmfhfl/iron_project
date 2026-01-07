@@ -33,7 +33,7 @@ export default async function SocialingApplyPage({
       <div className="max-w-5xl mx-auto">
         <SocialingApplyPageClient
           socialingId={id}
-          formDatabaseType="DORAN_BOOK"
+          socialing={socialing}
           socialingCoverImage={socialing?.coverImage || null}
         />
       </div>
