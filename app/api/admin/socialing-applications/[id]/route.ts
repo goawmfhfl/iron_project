@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  getSocialingApplicationById,
+  updateApplicationStatus,
+} from "@/lib/services/socialing-apply-service";
 import type { ApplicationStatus } from "@/lib/types/socialing-apply";
 
 export async function GET(
@@ -22,24 +26,25 @@ export async function GET(
       return NextResponse.json({ error: "관리자 권한이 필요합니다." }, { status: 403 });
     }
 
-    const { data, error } = await supabase
-      .from("socialing_applications")
-      .select("*")
-      .eq("id", params.id)
-      .single();
+    const application = await getSocialingApplicationById(params.id);
 
-    if (error) {
+    if (!application) {
       return NextResponse.json(
-        { error: `신청 상세 조회 실패: ${error.message}` },
-        { status: 500 }
+        { error: "신청을 찾을 수 없습니다." },
+        { status: 404 }
       );
     }
 
-    return NextResponse.json({ application: data });
+    return NextResponse.json({ application });
   } catch (error) {
     console.error("admin socialing-applications detail error:", error);
     return NextResponse.json(
-      { error: "신청 정보를 불러오는데 실패했습니다." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "신청 정보를 불러오는데 실패했습니다.",
+      },
       { status: 500 }
     );
   }
@@ -67,6 +72,7 @@ export async function PATCH(
 
     const body = await request.json().catch(() => ({}));
     const status = body?.status as ApplicationStatus | undefined;
+    const admin_note = body?.admin_note as string | null | undefined;
 
     if (!status || !["PENDING", "APPROVED", "REJECTED"].includes(status)) {
       return NextResponse.json(
@@ -75,21 +81,12 @@ export async function PATCH(
       );
     }
 
-    const { data, error } = await supabase
-      .from("socialing_applications")
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", params.id)
-      .select()
-      .single();
+    const application = await updateApplicationStatus(params.id, {
+      status,
+      admin_note,
+    });
 
-    if (error) {
-      return NextResponse.json(
-        { error: `신청 상태 업데이트 실패: ${error.message}` },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ application: data });
+    return NextResponse.json({ application });
   } catch (error) {
     console.error("admin socialing-applications update error:", error);
     return NextResponse.json(

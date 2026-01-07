@@ -24,10 +24,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const {
         data: { user: currentUser },
+        error: userError,
       } = await supabase.auth.getUser();
-      setUser(currentUser ?? null);
+      
+      // "Lock broken by another request" 오류는 무시하고 재시도
+      if (userError && userError.message.includes("Lock broken by another request")) {
+        // 짧은 지연 후 재시도
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const {
+          data: { user: retryUser },
+        } = await supabase.auth.getUser();
+        setUser(retryUser ?? null);
+      } else {
+        setUser(currentUser ?? null);
+      }
     } catch (error) {
-      setUser(null);
+      // 예상치 못한 오류는 로깅만 하고 사용자 상태는 유지
+      if (
+        error instanceof Error &&
+        error.message.includes("Lock broken by another request")
+      ) {
+        // 락 충돌 오류는 무시하고 기존 사용자 상태 유지
+      } else {
+        console.warn("Auth refresh error:", error);
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

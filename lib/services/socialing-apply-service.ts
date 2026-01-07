@@ -4,14 +4,21 @@ import type {
   CreateSocialingApplicationInput,
   GetSocialingApplicationsParams,
   ApplicationStatus,
+  UpdateApplicationStatusInput,
 } from "@/lib/types/socialing-apply";
 
 export async function createSocialingApplication(
   input: CreateSocialingApplicationInput
 ): Promise<SocialingApplication> {
-  // user_id는 필수 (인증된 사용자만 신청 가능)
+  // 필수 필드 검증
   if (!input.user_id) {
     throw new Error("신청 생성 실패: 로그인이 필요합니다.");
+  }
+  if (!input.user_email) {
+    throw new Error("신청 생성 실패: 사용자 이메일이 필요합니다.");
+  }
+  if (!input.question_answer || input.question_answer.trim().length < 5) {
+    throw new Error("신청 생성 실패: 질문 답변은 최소 5글자 이상이어야 합니다.");
   }
 
   const supabase = await createClient();
@@ -21,14 +28,10 @@ export async function createSocialingApplication(
     .insert({
       socialing_id: input.socialing_id,
       socialing_title: input.socialing_title ?? null,
-      form_database_type: input.form_database_type,
-      form_database_id: input.form_database_id,
-      application_round: input.application_round ?? null,
-      form_data: input.form_data,
-      form_schema_snapshot: input.form_schema_snapshot ?? null,
       user_id: input.user_id,
-      user_email: input.user_email ?? null,
+      user_email: input.user_email,
       user_name: input.user_name ?? null,
+      question_answer: input.question_answer.trim(),
       status: "PENDING",
     })
     .select()
@@ -51,8 +54,8 @@ export async function getSocialingApplications(params?: GetSocialingApplications
     .from("socialing_applications")
     .select("*", { count: "exact" });
 
-  if (params?.form_database_type) {
-    query = query.eq("form_database_type", params.form_database_type);
+  if (params?.socialing_id) {
+    query = query.eq("socialing_id", params.socialing_id);
   }
   if (params?.status) {
     query = query.eq("status", params.status);
@@ -83,25 +86,6 @@ export async function getSocialingApplications(params?: GetSocialingApplications
   };
 }
 
-// application_round로 필터링하는 함수 (향후 확장용)
-export async function getSocialingApplicationsByRound(
-  applicationRound: string
-): Promise<SocialingApplication[]> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("socialing_applications")
-    .select("*")
-    .eq("application_round", applicationRound)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(`신청회차별 조회 실패: ${error.message}`);
-  }
-
-  return (data ?? []) as SocialingApplication[];
-}
-
 export async function getSocialingApplicationById(
   id: string
 ): Promise<SocialingApplication | null> {
@@ -121,12 +105,24 @@ export async function getSocialingApplicationById(
 
 export async function updateApplicationStatus(
   id: string,
-  status: ApplicationStatus
+  input: UpdateApplicationStatusInput
 ): Promise<SocialingApplication> {
   const supabase = await createClient();
+  
+  const updateData: {
+    status: ApplicationStatus;
+    admin_note?: string | null;
+  } = {
+    status: input.status,
+  };
+
+  if (input.admin_note !== undefined) {
+    updateData.admin_note = input.admin_note;
+  }
+
   const { data, error } = await supabase
     .from("socialing_applications")
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq("id", id)
     .select()
     .single();

@@ -6,18 +6,19 @@ import { getSocialingByPageId } from "@/lib/services/notion-service.server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      socialing_id,
-      form_database_type,
-      form_database_id,
-      form_data,
-      form_schema_snapshot,
-      question_answer,
-    } = body || {};
+    const { socialing_id, question_answer } = body || {};
 
+    // 필수 필드 검증
     if (!socialing_id) {
       return NextResponse.json(
         { error: "socialing_id는 필수입니다." },
+        { status: 400 }
+      );
+    }
+
+    if (!question_answer || typeof question_answer !== "string" || question_answer.trim().length < 5) {
+      return NextResponse.json(
+        { error: "질문 답변은 최소 5글자 이상이어야 합니다." },
         { status: 400 }
       );
     }
@@ -38,13 +39,21 @@ export async function POST(request: NextRequest) {
 
     // 인증된 사용자 정보 필수 필드로 설정
     const user_id = user.id;
-    const user_email = user.email || null;
+    const user_email = user.email;
+    if (!user_email) {
+      return NextResponse.json(
+        { error: "사용자 이메일 정보가 없습니다." },
+        { status: 400 }
+      );
+    }
+
     const user_name =
       (user.user_metadata?.nickname as string) ||
       (user.user_metadata?.user_name as string) ||
+      (user.user_metadata?.name as string) ||
       null;
 
-    // 소셜링 제목 가져오기
+    // 소셜링 제목 가져오기 (스냅샷)
     let socialing_title: string | null = null;
     try {
       const socialing = await getSocialingByPageId(socialing_id);
@@ -53,37 +62,17 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       console.error("소셜링 제목 조회 실패:", error);
+      // 소셜링 제목 조회 실패는 치명적이지 않으므로 계속 진행
     }
 
-    // 폼 기반 신청은 더 이상 사용하지 않으므로, 회원/소셜링 정보를 기반으로 최소 form_data 구성
-    const safeFormDatabaseType =
-      (form_database_type as string | undefined) ?? "DEFAULT";
-    const safeFormDatabaseId =
-      (form_database_id as string | undefined) ?? "signup_profile";
-
-    let baseFormData =
-      form_data && typeof form_data === "object"
-        ? { ...(form_data as Record<string, any>) }
-        : ({
-            source: "signup_profile",
-            user_email,
-            user_name,
-          } as Record<string, any>);
-
-    if (typeof question_answer === "string" && question_answer.trim()) {
-      baseFormData.question_answer = question_answer.trim();
-    }
-
+    // 신청 생성
     const application = await createSocialingApplication({
       socialing_id,
       socialing_title,
-      form_database_type: safeFormDatabaseType,
-      form_database_id: safeFormDatabaseId,
-      form_data: baseFormData,
-      form_schema_snapshot: form_schema_snapshot || null,
       user_id,
       user_email,
       user_name,
+      question_answer: question_answer.trim(),
     });
 
     return NextResponse.json({ success: true, application }, { status: 201 });

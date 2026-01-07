@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/lib/utils";
 import type { SocialingApplication, ApplicationStatus } from "@/lib/types/socialing-apply";
 import { useModalStore } from "@/lib/stores/modal-store";
@@ -18,6 +19,7 @@ export default function SocialingApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [adminNote, setAdminNote] = useState("");
 
   const fetchDetail = async () => {
     try {
@@ -74,12 +76,16 @@ export default function SocialingApplicationDetailPage() {
       const res = await fetch(`/api/admin/socialing-applications/${application.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          admin_note: adminNote.trim() || null,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(json?.error || "상태 변경에 실패했습니다.");
       }
+      setAdminNote("");
       await fetchDetail();
       openModal({
         type: "CUSTOM",
@@ -120,9 +126,6 @@ export default function SocialingApplicationDetailPage() {
     );
   }
 
-  const formData = application.form_data;
-  const formSchemaSnapshot = application.form_schema_snapshot;
-  const applicantEntries = Object.entries(formData);
 
   return (
     <div className="space-y-6">
@@ -177,16 +180,6 @@ export default function SocialingApplicationDetailPage() {
               </div>
             )}
             <div>
-              <p className="text-sm text-text-tertiary mb-1">폼 데이터베이스 ID</p>
-              <p className="text-text-primary break-all">{application.form_database_id}</p>
-            </div>
-            {application.application_round && (
-              <div>
-                <p className="text-sm text-text-tertiary mb-1">신청회차</p>
-                <p className="text-text-primary break-all">{application.application_round}</p>
-              </div>
-            )}
-            <div>
               <p className="text-sm text-text-tertiary mb-1">상태</p>
               {statusBadge(application.status)}
             </div>
@@ -204,74 +197,53 @@ export default function SocialingApplicationDetailPage() {
 
       <Card elevation={1}>
         <CardHeader>
-          <h2 className="text-xl font-semibold text-text-primary">신청자 입력</h2>
-          {formSchemaSnapshot && (
-            <p className="text-sm text-text-secondary mt-1">
-              폼 스키마 스냅샷을 사용하여 필드명을 표시합니다.
-            </p>
-          )}
+          <h2 className="text-xl font-semibold text-text-primary">질문 답변</h2>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {applicantEntries.length === 0 ? (
-            <p className="text-text-secondary">입력 데이터가 없습니다.</p>
+        <CardContent>
+          {application.question_answer ? (
+            <div className="p-4 bg-surface-elevated rounded-lg border border-border">
+              <pre className="text-sm text-text-primary whitespace-pre-wrap break-words">
+                {application.question_answer}
+              </pre>
+            </div>
           ) : (
-            applicantEntries.map(([fieldId, value]) => {
-              // form_schema_snapshot에서 필드명 가져오기
-              let fieldName = fieldId;
-              let fieldType: string | undefined;
-              if (formSchemaSnapshot) {
-                const field = formSchemaSnapshot.fields.find((f) => f.id === fieldId);
-                if (field) {
-                  fieldName = field.name;
-                  fieldType = field.type;
-                }
-              }
-
-              const isFileArray =
-                Array.isArray(value) &&
-                value.length > 0 &&
-                typeof value[0] === "string" &&
-                (value[0].startsWith("http") || value[0].startsWith("/"));
-
-              return (
-                <div key={fieldId} className="border-b border-border pb-4 last:border-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="text-sm font-medium text-text-primary">{fieldName}</p>
-                    {fieldType && (
-                      <span className="text-xs text-text-tertiary bg-surface-elevated px-2 py-0.5 rounded">
-                        {fieldType}
-                      </span>
-                    )}
-                  </div>
-                  {isFileArray ? (
-                    <div className="space-y-2">
-                      {(value as string[]).map((url, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-surface-elevated rounded">
-                          <span className="text-sm text-text-primary truncate">파일 {idx + 1}</span>
-                          <Button variant="ghost" size="sm" onClick={() => window.open(url, "_blank")}>
-                            열기
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <pre className="text-sm text-text-secondary whitespace-pre-wrap break-words">
-                      {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
-                    </pre>
-                  )}
-                </div>
-              );
-            })
+            <p className="text-text-secondary">답변이 없습니다.</p>
           )}
         </CardContent>
       </Card>
+
+      {application.admin_note && (
+        <Card elevation={1}>
+          <CardHeader>
+            <h2 className="text-xl font-semibold text-text-primary">관리자 메모</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 bg-surface-elevated rounded-lg border border-border">
+              <pre className="text-sm text-text-primary whitespace-pre-wrap break-words">
+                {application.admin_note}
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {application.status === "PENDING" && (
         <Card elevation={1}>
           <CardHeader>
             <h2 className="text-xl font-semibold text-text-primary">상태 변경</h2>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                관리자 메모 (선택사항)
+              </label>
+              <Textarea
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+                placeholder="승인/거절 사유나 메모를 입력하세요..."
+                rows={4}
+              />
+            </div>
             <div className="flex gap-4">
               <Button disabled={updating} onClick={() => updateStatus("APPROVED")} className="flex-1">
                 승인

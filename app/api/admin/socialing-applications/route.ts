@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSocialingApplications } from "@/lib/services/socialing-apply-service";
 import type { ApplicationStatus } from "@/lib/types/socialing-apply";
 
 export async function GET(request: NextRequest) {
@@ -26,50 +27,33 @@ export async function GET(request: NextRequest) {
       Math.max(1, Number(searchParams.get("pageSize") || 20))
     );
 
-    const formDatabaseType =
-      (searchParams.get("form_database_type") || "") || "";
+    const socialingId = searchParams.get("socialing_id") || "";
     const status = (searchParams.get("status") || "") as ApplicationStatus | "";
     const startDate = searchParams.get("start_date") || "";
     const endDate = searchParams.get("end_date") || "";
 
-    let query = supabase
-      .from("socialing_applications")
-      .select("*", { count: "exact" });
-
-    if (formDatabaseType) {
-      query = query.eq("form_database_type", formDatabaseType);
-    }
-    if (status) {
-      query = query.eq("status", status);
-    }
-    if (startDate) {
-      query = query.gte("created_at", startDate);
-    }
-    if (endDate) {
-      query = query.lte("created_at", endDate);
-    }
-
-    query = query.order("created_at", { ascending: false });
-
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-
-    const { data, error, count } = await query.range(from, to);
-    if (error) {
-      return NextResponse.json(
-        { error: `신청 목록 조회 실패: ${error.message}` },
-        { status: 500 }
-      );
-    }
+    const { applications, total } = await getSocialingApplications({
+      socialing_id: socialingId || undefined,
+      status: status || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      page,
+      pageSize,
+    });
 
     return NextResponse.json({
-      applications: data ?? [],
-      total: count ?? 0,
+      applications,
+      total,
     });
   } catch (error) {
     console.error("admin socialing-applications list error:", error);
     return NextResponse.json(
-      { error: "신청 목록을 불러오는데 실패했습니다." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "신청 목록을 불러오는데 실패했습니다.",
+      },
       { status: 500 }
     );
   }
