@@ -11,6 +11,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import type { SocialingThumbnail } from "@/lib/types/socialing";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface SocialingThumbnailCarouselProps {
   thumbnails: SocialingThumbnail[];
 }
@@ -38,6 +40,7 @@ export function SocialingThumbnailCarousel({
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 1280px"
+                onError={handleImageError}
               />
             ) : (
               <div className="w-full h-full bg-surface-elevated flex items-center justify-center">

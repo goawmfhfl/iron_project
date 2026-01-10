@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { getNotionContentByPageId } from "@/lib/services/notion-service.server";
 import { getNotionPageContent } from "@/lib/services/notion-service";
 import { NotionRenderer } from "@/components/notion/content/NotionRenderer";
@@ -12,6 +13,7 @@ import { ContentSkeleton } from "@/components/consumer/ContentSkeleton";
 import type { NotionContent } from "@/lib/types/notion-content";
 import type { NotionPageContent } from "@/lib/types/notion";
 import { formatNotionPageId } from "@/lib/utils/notion";
+import { handleImageError } from "@/lib/utils/image-error-handler";
 
 interface ContentDetailClientProps {
   pageId: string;
@@ -57,6 +59,9 @@ export function ContentDetailClient({
     initialData: initialNotionContent ?? undefined,
     staleTime: 60 * 1000, // 1분
   });
+
+  // 이미지 에러는 handleImageError에서 직접 페이지 새로고침을 처리하므로
+  // 여기서는 이벤트 리스너가 필요 없습니다.
 
   // 초기 데이터가 없을 때만 스켈레톤 표시
   if (contentQuery.isLoading && !initialContent) {
@@ -109,6 +114,7 @@ export function ContentDetailClient({
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 896px"
               priority
+              onError={handleImageError}
             />
           </div>
         )}

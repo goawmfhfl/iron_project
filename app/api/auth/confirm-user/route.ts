@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/auth/confirm-user
  * 회원가입 후 이메일 확인 처리 (Service Role Key 사용)

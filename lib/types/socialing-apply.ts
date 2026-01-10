@@ -10,6 +10,7 @@ export interface SocialingApplication {
   question_answer: string;
   status: ApplicationStatus;
   admin_note: string | null;
+  form_database_type?: string | null; // 폼 데이터베이스 타입 (선택적)
   created_at: string;
   updated_at: string;
 }

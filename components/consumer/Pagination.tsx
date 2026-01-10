@@ -3,12 +3,22 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
 
 interface PaginationProps {
   currentPage: number;
   hasMore: boolean;
   nextCursor?: string | null;
   totalPages?: number;
+}
+
+/**
+ * 페이지별 커서를 저장하는 키 생성
+ */
+function getCursorStorageKey(searchParams: URLSearchParams): string {
+  const firstCategory = searchParams.get("firstCategory") || "";
+  const secondCategory = searchParams.get("secondCategory") || "";
+  return `contents_cursors_${firstCategory}_${secondCategory}`;
 }
 
 export function Pagination({
@@ -19,19 +29,77 @@ export function Pagination({
 }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const cursorsRef = useRef<Map<number, string>>(new Map());
+
+  // 현재 페이지의 커서를 저장 (다음 페이지로 가기 위한 커서)
+  useEffect(() => {
+    const storageKey = getCursorStorageKey(searchParams);
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      const cursors = stored ? JSON.parse(stored) : {};
+      
+      // 현재 페이지의 이전 커서 저장 (현재 URL의 cursor가 이전 페이지에서 받은 커서)
+      const currentCursor = searchParams.get("cursor");
+      if (currentCursor && currentPage > 1) {
+        // 현재 페이지로 오기 위해 사용한 커서를 저장 (이전 페이지의 nextCursor)
+        cursors[currentPage] = currentCursor;
+      }
+      
+      // 현재 페이지의 nextCursor를 다음 페이지용으로 저장
+      if (nextCursor && currentPage >= 1) {
+        cursors[currentPage + 1] = nextCursor;
+      }
+      
+      sessionStorage.setItem(storageKey, JSON.stringify(cursors));
+      cursorsRef.current = new Map(Object.entries(cursors).map(([k, v]) => [Number(k), v as string]));
+    } catch (error) {
+      console.error("Failed to save cursor:", error);
+    }
+  }, [nextCursor, currentPage, searchParams]);
+
+  // 저장된 커서 불러오기
+  useEffect(() => {
+    const storageKey = getCursorStorageKey(searchParams);
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored) {
+        const cursors = JSON.parse(stored);
+        cursorsRef.current = new Map(Object.entries(cursors).map(([k, v]) => [Number(k), v as string]));
+      }
+    } catch (error) {
+      console.error("Failed to load cursors:", error);
+    }
+  }, [searchParams]);
 
   const handlePageChange = (page: number, cursor?: string | null, isPrevious = false) => {
     const params = new URLSearchParams(searchParams.toString());
     
     if (page === 1) {
+      // 첫 페이지로 이동
       params.delete("page");
       params.delete("cursor");
-    } else {
-      params.set("page", page.toString());
-      // 이전 페이지로 가는 경우 cursor 제거 (Notion API는 이전 cursor를 제공하지 않음)
-      if (isPrevious) {
+    } else if (isPrevious) {
+      // 이전 페이지로 이동: 저장된 커서 사용
+      const prevPage = currentPage - 1;
+      const prevCursor = cursorsRef.current.get(prevPage);
+      
+      if (prevPage === 1) {
+        // 첫 페이지로 이동
+        params.delete("page");
         params.delete("cursor");
-      } else if (cursor) {
+      } else {
+        // 이전 페이지의 커서 사용
+        params.set("page", prevPage.toString());
+        if (prevCursor) {
+          params.set("cursor", prevCursor);
+        } else {
+          params.delete("cursor");
+        }
+      }
+    } else {
+      // 다음 페이지로 이동
+      params.set("page", page.toString());
+      if (cursor) {
         params.set("cursor", cursor);
       } else {
         params.delete("cursor");
@@ -43,97 +111,18 @@ export function Pagination({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 페이지 번호 배열 생성 (최대 5개 표시)
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxPages = totalPages || (hasMore ? currentPage + 2 : currentPage);
-    
-    if (maxPages <= 5) {
-      // 페이지가 5개 이하면 모두 표시
-      for (let i = 1; i <= maxPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // 현재 페이지 기준으로 앞뒤 2개씩 표시
-      if (currentPage <= 3) {
-        // 앞부분
-        for (let i = 1; i <= 5; i++) {
-          pages.push(i);
-        }
-        if (maxPages > 5) {
-          pages.push("...");
-          pages.push(maxPages);
-        }
-      } else if (currentPage >= maxPages - 2) {
-        // 뒷부분
-        pages.push(1);
-        pages.push("...");
-        for (let i = maxPages - 4; i <= maxPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        // 중간
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(maxPages);
-      }
-    }
-    
-    return pages;
-  };
-
-  const pageNumbers = getPageNumbers();
-
   return (
-    <div className="flex items-center justify-center gap-2 mt-8">
+    <div className="flex items-center justify-center gap-4 mt-8">
       {/* 이전 버튼 */}
       <Button
         variant="outline"
         size="sm"
         onClick={() => handlePageChange(currentPage - 1, null, true)}
         disabled={currentPage === 1}
-        className="min-w-[80px]"
+        className="min-w-[100px]"
       >
         이전
       </Button>
-
-      {/* 페이지 번호 */}
-      <div className="flex items-center gap-1">
-        {pageNumbers.map((page, index) => {
-          if (page === "...") {
-            return (
-              <span
-                key={`ellipsis-${index}`}
-                className="px-2 text-text-tertiary"
-              >
-                ...
-              </span>
-            );
-          }
-
-          const pageNum = page as number;
-          const isActive = pageNum === currentPage;
-
-          return (
-            <Button
-              key={pageNum}
-              variant={isActive ? "primary" : "outline"}
-              size="sm"
-              onClick={() => handlePageChange(pageNum)}
-              className={cn(
-                "min-w-[40px] transition-all",
-                isActive && "bg-primary text-text-inverse"
-              )}
-            >
-              {pageNum}
-            </Button>
-          );
-        })}
-      </div>
 
       {/* 다음 버튼 */}
       <Button
@@ -141,7 +130,7 @@ export function Pagination({
         size="sm"
         onClick={() => handlePageChange(currentPage + 1, nextCursor)}
         disabled={!hasMore && (!totalPages || currentPage >= totalPages)}
-        className="min-w-[80px]"
+        className="min-w-[100px]"
       >
         다음
       </Button>

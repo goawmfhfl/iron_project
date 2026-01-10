@@ -11,6 +11,8 @@ import {
 } from "@/lib/services/content-access";
 import { useModalStore } from "@/lib/stores/modal-store";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface ContentCardProps {
   content: NotionContent;
   hasAccess: boolean;
@@ -113,6 +115,7 @@ export function ContentCard({
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 320px, 384px"
+                onError={handleImageError}
               />
             </div>
           )}

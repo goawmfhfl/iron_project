@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getSocialingApplications } from "@/lib/services/socialing-apply-service";
 import type { ApplicationStatus } from "@/lib/types/socialing-apply";
 
+// 동적 렌더링 강제 (cookies 사용)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();

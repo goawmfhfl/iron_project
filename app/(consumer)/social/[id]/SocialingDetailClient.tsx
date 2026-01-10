@@ -9,10 +9,12 @@ import type { NotionPageContent } from "@/lib/types/notion";
 import { NotionRenderer } from "@/components/notion/socialing/NotionRenderer";
 import { SocialingCTAButton } from "@/components/consumer/SocialingCTAButton";
 import { Button } from "@/components/ui/Button";
+import { useSocialingDetail } from "@/lib/hooks/useSocialingDetail";
+import { Card, CardContent } from "@/components/ui/Card";
+// 이미지 에러는 handleImageError에서 직접 처리하므로 import 불필요
 
 interface SocialingDetailClientProps {
-  socialing: Socialing;
-  notionContent: NotionPageContent | null;
+  socialingId: string;
 }
 
 /**
@@ -32,17 +34,21 @@ function getTypeText(type: string): string {
 }
 
 export function SocialingDetailClient({
-  socialing,
-  notionContent,
+  socialingId,
 }: SocialingDetailClientProps) {
   const router = useRouter();
   const { openModal, closeModal } = useModalStore();
   const { user, loading } = useAuth();
+  const { data, isLoading, error, refetch } = useSocialingDetail(socialingId);
 
+  // 이미지 에러는 handleImageError에서 직접 페이지 새로고침을 처리하므로
+  // 여기서는 이벤트 리스너가 필요 없습니다.
+
+  // useEffect는 항상 호출되어야 하므로 조건부 return 전에 배치
   useEffect(() => {
     // PENDING 상태일 때 모달 표시 (2단계 방어)
-    if (socialing.status === "PENDING") {
-      const typeText = getTypeText(socialing.type);
+    if (data?.socialing?.status === "PENDING") {
+      const typeText = getTypeText(data.socialing.type);
       openModal({
         type: "CUSTOM",
         title: "예정 이벤트",
@@ -56,7 +62,39 @@ export function SocialingDetailClient({
         },
       });
     }
-  }, [socialing.status, socialing.type, router, openModal, closeModal]);
+  }, [data?.socialing?.status, data?.socialing?.type, router, openModal, closeModal]);
+
+  // 로딩 중
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="h-12 bg-surface-elevated rounded animate-pulse" />
+        <div className="h-64 bg-surface-elevated rounded animate-pulse" />
+        <div className="h-96 bg-surface-elevated rounded animate-pulse" />
+      </div>
+    );
+  }
+
+  // 에러 발생
+  if (error || !data) {
+    return (
+      <Card elevation={1}>
+        <CardContent className="py-12 text-center">
+          <p className="text-error font-semibold mb-4">
+            소셜링을 불러올 수 없습니다.
+          </p>
+          <p className="text-sm text-text-tertiary mb-6">
+            {error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."}
+          </p>
+          <Button variant="outline" onClick={() => router.push("/social")}>
+            목록으로 돌아가기
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { socialing, notionContent } = data;
 
   // PENDING 상태일 때도 페이지를 보여주되, 명확한 안내 표시
 

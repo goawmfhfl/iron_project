@@ -52,6 +52,7 @@ export default function SocialingApplicationsPage() {
 
   useEffect(() => {
     fetchList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, formDatabaseType, status, startDate, endDate]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -188,7 +189,7 @@ export default function SocialingApplicationsPage() {
                         <td className="py-3 px-4 text-sm text-text-primary">
                           {app.socialing_title || app.socialing_id.slice(0, 8) + "..."}
                         </td>
-                        <td className="py-3 px-4 text-sm text-text-primary">{formTypeLabel(app.form_database_type)}</td>
+                        <td className="py-3 px-4 text-sm text-text-primary">{formTypeLabel(app.form_database_type || "")}</td>
                         <td className="py-3 px-4">{statusBadge(app.status)}</td>
                       </tr>
                     ))}

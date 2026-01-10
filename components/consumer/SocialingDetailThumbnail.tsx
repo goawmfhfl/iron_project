@@ -10,6 +10,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/thumbs";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface SocialingDetailThumbnailProps {
   images: string[];
 }
@@ -64,6 +66,7 @@ export function SocialingDetailThumbnail({
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 1280px"
                   priority={index === 0}
+                  onError={handleImageError}
                 />
               </div>
             </SwiperSlide>
@@ -147,6 +150,7 @@ export function SocialingDetailThumbnail({
                     fill
                     className="object-cover"
                     sizes="80px"
+                    onError={handleImageError}
                   />
                 </div>
               </SwiperSlide>

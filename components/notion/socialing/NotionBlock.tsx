@@ -19,6 +19,8 @@ import { SocialingDetailInfo } from "@/components/consumer/SocialingDetailInfo";
 import type { NotionBlock } from "@/lib/types/notion";
 import type { Socialing } from "@/lib/types/socialing";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface NotionBlockProps {
   block: NotionBlock;
   /**
@@ -170,6 +172,7 @@ export function NotionBlock({
               fill
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 896px"
+              onError={handleImageError}
             />
           </div>
           {block.image?.caption && block.image.caption.length > 0 && (

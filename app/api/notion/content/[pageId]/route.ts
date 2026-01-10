@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getNotionContentByPageId } from "@/lib/services/notion-service.server";
 import { formatNotionPageId } from "@/lib/utils/notion";
 
+// 동적 렌더링 강제 (동적 params 사용)
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ pageId: string }> }

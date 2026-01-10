@@ -51,6 +51,7 @@ async function fetchNestedBlocks(
     const response: Response = await fetch(url, {
       method: "GET",
       headers,
+      next: { revalidate: 3600 }, // 1시간 캐시 - Notion 이미지 URL 갱신을 위해
     });
 
     if (!response.ok) {
@@ -97,6 +98,7 @@ async function fetchPageBlocks(
     const response: Response = await fetch(url, {
       method: "GET",
       headers,
+      next: { revalidate: 3600 }, // 1시간 캐시 - Notion 이미지 URL 갱신을 위해
     });
 
     if (!response.ok) {
@@ -746,18 +748,12 @@ export async function getSocialingThumbnails(): Promise<
 
     const headers = getNotionHeaders();
 
-    // status 필터: OPEN, PENDING, FINISH만 허용
+    // status 필터: 썸네일은 OPEN만 허용
     const statusInfo = await findPropertyInfo(databaseId, headers, "status");
     const filters: any[] = [];
 
     if (statusInfo) {
-      filters.push({
-        or: [
-          buildEqualsFilter(statusInfo, "OPEN"),
-          buildEqualsFilter(statusInfo, "PENDING"),
-          buildEqualsFilter(statusInfo, "FINISH"),
-        ].filter(Boolean),
-      });
+      filters.push(buildEqualsFilter(statusInfo, "OPEN"));
     }
 
     const queryBody: any = {
@@ -774,7 +770,7 @@ export async function getSocialingThumbnails(): Promise<
         method: "POST",
         headers,
         body: JSON.stringify(queryBody),
-        next: { revalidate: 600 }, // 10분 캐시
+        next: { revalidate: 3600 }, // 1시간 캐시 - Notion 이미지 URL 갱신을 위해
       }
     );
 
@@ -795,7 +791,8 @@ export async function getSocialingThumbnails(): Promise<
     const thumbnails: SocialingThumbnail[] = [];
     for (const page of pages) {
       const thumbnail = parseNotionPageToThumbnail(page);
-      if (thumbnail) {
+      // OPEN 상태만 포함 (추가 필터링)
+      if (thumbnail && thumbnail.status === "OPEN") {
         thumbnails.push(thumbnail);
       }
     }
@@ -812,8 +809,9 @@ export async function getSocialingThumbnails(): Promise<
 
 /**
  * 소셜링 목록 조회 (서버 사이드)
+ * @param userRole 사용자 역할 (admin인 경우 PENDING도 포함, 일반 사용자는 OPEN만)
  */
-export async function getSocialings(): Promise<Socialing[]> {
+export async function getSocialings(userRole?: "admin" | "user" | "premium_user" | null): Promise<Socialing[]> {
   try {
     const databaseId = process.env.NOTION_SOCIALING_DATABASE_ID;
     if (!databaseId) {
@@ -822,18 +820,27 @@ export async function getSocialings(): Promise<Socialing[]> {
 
     const headers = getNotionHeaders();
 
-    // status 필터: STAGING은 노출하지 않기 위해 OPEN/PENDING/FINISH만 허용
+
+    // status 필터: 
+    // - 관리자: OPEN, PENDING만 허용 (FINISH 제외)
+    // - 일반 사용자: OPEN만 허용
+    // - STAGING은 항상 제외
     const statusInfo = await findPropertyInfo(databaseId, headers, "status");
     const filters: any[] = [];
 
     if (statusInfo) {
-      filters.push({
-        or: [
-          buildEqualsFilter(statusInfo, "OPEN"),
-          buildEqualsFilter(statusInfo, "PENDING"),
-          buildEqualsFilter(statusInfo, "FINISH"),
-        ].filter(Boolean),
-      });
+      if (userRole === "admin") {
+        // 관리자는 OPEN과 PENDING만 볼 수 있음
+        filters.push({
+          or: [
+            buildEqualsFilter(statusInfo, "OPEN"),
+            buildEqualsFilter(statusInfo, "PENDING"),
+          ].filter(Boolean),
+        });
+      } else {
+        // 일반 사용자는 OPEN만 볼 수 있음
+        filters.push(buildEqualsFilter(statusInfo, "OPEN"));
+      }
     }
 
     const queryBody: any = {
@@ -850,7 +857,7 @@ export async function getSocialings(): Promise<Socialing[]> {
         method: "POST",
         headers,
         body: JSON.stringify(queryBody),
-        next: { revalidate: 60 }, // 1분 캐시
+        next: { revalidate: 3600 }, // 1시간 캐시 - Notion 이미지 URL 갱신을 위해
       }
     );
 
@@ -871,11 +878,23 @@ export async function getSocialings(): Promise<Socialing[]> {
     const socialings: Socialing[] = [];
     for (const page of pages) {
       const socialing = parseNotionPageToSocialing(page);
-      // 혹시나 쿼리 필터가 적용되지 않는 환경을 대비해, STAGING은 한번 더 차단
-      if (socialing && socialing.status !== "STAGING") {
-        socialings.push(socialing);
+      // 추가 필터링: STAGING과 FINISH는 항상 제외
+      if (socialing && socialing.status !== "STAGING" && socialing.status !== "FINISH") {
+        // Notion 쿼리에서 이미 필터링했지만, 한번 더 확인
+        // 관리자는 OPEN과 PENDING 모두 포함
+        if (userRole === "admin") {
+          if (socialing.status === "OPEN" || socialing.status === "PENDING") {
+            socialings.push(socialing);
+          }
+        } else {
+          // 일반 사용자는 OPEN만
+          if (socialing.status === "OPEN") {
+            socialings.push(socialing);
+          }
+        }
       }
     }
+
 
     return socialings;
   } catch (error) {
@@ -897,7 +916,7 @@ export async function getSocialingByPageId(
     const pageResponse = await fetch(`${NOTION_API_BASE}/pages/${formattedPageId}`, {
       method: "GET",
       headers,
-      next: { revalidate: 600 }, // 10분 캐시
+      next: { revalidate: 3600 }, // 1시간 캐시 - Notion 이미지 URL 갱신을 위해
     });
 
     if (!pageResponse.ok) {

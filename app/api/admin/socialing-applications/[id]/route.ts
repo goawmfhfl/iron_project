@@ -6,6 +6,9 @@ import {
 } from "@/lib/services/socialing-apply-service";
 import type { ApplicationStatus } from "@/lib/types/socialing-apply";
 
+// 동적 렌더링 강제 (cookies 사용)
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }

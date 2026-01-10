@@ -9,6 +9,8 @@ import { formatNotionPageId } from "@/lib/utils/notion";
 import { PromoCallout } from "./PromoCallout";
 import type { NotionBlock } from "@/lib/types/notion";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface NotionBlockProps {
   block: NotionBlock;
   contentId?: string;
@@ -139,6 +141,7 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
               fill
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 896px"
+              onError={handleImageError}
             />
           </div>
           {block.image?.caption && block.image.caption.length > 0 && (

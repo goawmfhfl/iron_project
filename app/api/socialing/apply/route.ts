@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createSocialingApplication } from "@/lib/services/socialing-apply-service";
 import { getSocialingByPageId } from "@/lib/services/notion-service.server";
 
+// 동적 렌더링 강제 (cookies 사용)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

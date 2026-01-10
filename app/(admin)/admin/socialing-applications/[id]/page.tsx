@@ -47,6 +47,7 @@ export default function SocialingApplicationDetailPage() {
   useEffect(() => {
     if (!id) return;
     fetchDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const formatDateTime = (dateString: string) =>

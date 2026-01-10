@@ -3,6 +3,9 @@ import { Client } from "@notionhq/client";
 import { extractNotionPageId, formatNotionPageId } from "@/lib/utils/notion";
 import type { NotionBlock } from "@/lib/types/notion";
 
+// 동적 렌더링 강제 (searchParams 사용)
+export const dynamic = 'force-dynamic';
+
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
 const NOTION_API_BASE = "https://api.notion.com/v1";

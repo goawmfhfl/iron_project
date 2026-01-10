@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// 동적 렌더링 강제 (cookies 사용)
+export const dynamic = 'force-dynamic';
+
 /**
  * PATCH /api/admin/users/[id]
  * 회원 정보 수정 (email 등 Admin API가 필요한 경우)

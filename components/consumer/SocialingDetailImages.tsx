@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface SocialingDetailImagesProps {
   images: string[];
 }
@@ -29,6 +31,7 @@ export function SocialingDetailImages({
               className="w-full h-auto object-contain"
               sizes="(max-width: 768px) 100vw, 1200px"
               priority={index === 0}
+              onError={handleImageError}
             />
           </div>
         </div>

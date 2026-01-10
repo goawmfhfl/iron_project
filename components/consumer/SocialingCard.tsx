@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { formatEventDate } from "@/lib/utils/date";
 import { useModalStore } from "@/lib/stores/modal-store";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 interface SocialingCardProps {
   socialing: Socialing;
   className?: string;
@@ -95,8 +97,8 @@ export function SocialingCard({
       const typeText = getTypeBadgeText(socialing.type);
       openModal({
         type: "CUSTOM",
-        title: "예정 이벤트",
-        message: `예정 이벤트를 기다려 주세요`,
+        title: "대기중인 소셜링",
+        message: `이 ${typeText}은(는) 현재 대기중 상태입니다. 곧 오픈될 예정이니 조금만 기다려주세요.`,
         primaryAction: {
           label: "확인",
           onClick: () => {
@@ -125,10 +127,10 @@ export function SocialingCard({
         {/* 이미지 영역 */}
         {socialing.coverImage && (
           <div className="relative w-full sm:w-64 md:w-80 lg:w-96 aspect-square sm:flex-shrink-0 overflow-hidden sm:rounded-l-lg rounded-t-lg sm:rounded-tr-none bg-surface-elevated">
-            {/* 예정 상태 리본 뱃지 (상단 라벨) */}
+            {/* 대기중 상태 리본 뱃지 (상단 라벨) */}
             {socialing.status === "PENDING" && (
-              <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md bg-warning/90 text-text-inverse text-xs font-semibold shadow-elevation-1">
-                예정
+              <div className="absolute top-2 left-2 z-20 px-3 py-1.5 rounded-md bg-warning text-white text-xs font-bold shadow-elevation-2 border-2 border-warning-dark">
+                대기중
               </div>
             )}
             <Image
@@ -137,12 +139,16 @@ export function SocialingCard({
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 320px, 384px"
+              onError={handleImageError}
             />
-            {/* 예정 상태일 때 강한 dim + 중앙 텍스트 오버레이 */}
+            {/* 대기중 상태일 때 강한 dim + 중앙 텍스트 오버레이 */}
             {socialing.status === "PENDING" && (
-              <div className="absolute inset-0 z-10 bg-black/65 flex items-center justify-center">
-                <span className="px-4 py-2 rounded-full bg-black/80 text-white text-sm sm:text-base font-semibold tracking-tight">
-                  소셜링 준비중
+              <div className="absolute inset-0 z-10 bg-black/70 flex flex-col items-center justify-center gap-2">
+                <span className="px-5 py-2.5 rounded-lg bg-warning text-white text-base sm:text-lg font-bold tracking-tight shadow-elevation-2">
+                  대기중
+                </span>
+                <span className="px-4 py-2 rounded-full bg-black/90 text-white text-xs sm:text-sm font-medium tracking-tight">
+                  소셜링 준비중입니다
                 </span>
               </div>
             )}
@@ -221,8 +227,8 @@ export function SocialingCard({
                 </span>
               )}
               {socialing.status === "PENDING" && (
-                <span className="px-2 py-1 text-xs font-medium rounded-md bg-warning/15 text-warning-dark border border-warning/40">
-                  예정
+                <span className="px-3 py-1.5 text-xs font-bold rounded-md bg-warning/20 text-warning-dark border-2 border-warning/50">
+                  대기중
                 </span>
               )}
               {socialing.status === "FINISH" && (

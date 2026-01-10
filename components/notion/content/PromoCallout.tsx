@@ -15,6 +15,8 @@ import type { NotionBlock } from "@/lib/types/notion";
 import { extractTextFromRichText } from "@/lib/services/notion-service";
 import { extractNotionPageId, formatNotionPageId } from "@/lib/utils/notion";
 
+import { handleImageError } from "@/lib/utils/image-error-handler";
+
 type PromoImage = {
   url: string;
   clickUrl?: string;
@@ -720,6 +722,7 @@ function PromoImageCard({
               ? "(max-width: 640px) 240px, 280px"
               : "(max-width: 640px) 200px, 220px"
           }
+          onError={handleImageError}
         />
       </div>
       {/* 클릭 유도 아이콘: caption에 URL이 있을 때만 표시 */}

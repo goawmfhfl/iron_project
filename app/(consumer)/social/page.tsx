@@ -1,80 +1,36 @@
-import { Suspense } from "react";
-import {
-  getSocialingThumbnails,
-  getSocialings,
-} from "@/lib/services/notion-service.server";
+"use client";
+
 import { SocialingThumbnailCarousel } from "@/components/consumer/SocialingThumbnailCarousel";
 import { SocialingSection } from "@/components/consumer/SocialingSection";
 import { Card, CardContent } from "@/components/ui/Card";
-import type { SocialingType } from "@/lib/types/socialing";
+import type { SocialingType, Socialing } from "@/lib/types/socialing";
+import { useSocialings } from "@/lib/hooks/useSocialings";
 
-// 소셜링 리스트는 상태 변화가 잦으므로
-// 개발 환경: 3초, 운영 환경: 1시간 기준으로 재생성
-const isDev =
-  process.env.NEXT_PUBLIC_NODE_ENV === "development" ||
-  process.env.NODE_ENV === "development";
+function SocialingContent() {
+  const { data, isLoading, error } = useSocialings();
 
-export const revalidate = isDev ? 3 : 3600;
+  // type별로 소셜링 그룹화
+  const socialingsByType: Record<SocialingType, Socialing[]> = {
+    CHALLENGE: [],
+    SOCIALING: [],
+    EVENT: [],
+  };
 
-async function SocialingContent() {
-  try {
-    // 썸네일과 소셜링 데이터 병렬로 가져오기
-    const [thumbnails, socialings] = await Promise.all([
-      getSocialingThumbnails(),
-      getSocialings(),
-    ]);
-
-    // type별로 소셜링 그룹화
-    const socialingsByType: Record<SocialingType, typeof socialings> = {
-      CHALLENGE: [],
-      SOCIALING: [],
-      EVENT: [],
-    };
-
-    for (const socialing of socialings) {
+  if (data?.socialings) {
+    for (const socialing of data.socialings) {
       if (socialingsByType[socialing.type]) {
         socialingsByType[socialing.type].push(socialing);
       }
     }
+  }
 
-    return (
-      <>
-        {/* 썸네일 캐러셀 */}
-        {thumbnails.length > 0 && (
-          <SocialingThumbnailCarousel thumbnails={thumbnails} />
-        )}
+  // 로딩 중
+  if (isLoading) {
+    return <SocialingSkeleton />;
+  }
 
-        {/* 소셜링 섹션들 */}
-        <SocialingSection
-          type="CHALLENGE"
-          socialings={socialingsByType.CHALLENGE}
-        />
-        <SocialingSection
-          type="SOCIALING"
-          socialings={socialingsByType.SOCIALING}
-        />
-        <SocialingSection
-          type="EVENT"
-          socialings={socialingsByType.EVENT}
-        />
-
-        {/* 모든 섹션이 비어있는 경우 */}
-        {socialings.length === 0 && (
-          <Card elevation={1}>
-            <CardContent className="py-12 text-center">
-              <p className="text-text-secondary mb-4">
-                등록된 소셜링이 없습니다.
-              </p>
-              <p className="text-sm text-text-tertiary">
-                곧 새로운 소셜링이 추가될 예정입니다.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </>
-    );
-  } catch (error) {
-    console.error("SocialingContent error:", error);
+  // 에러 발생
+  if (error) {
     return (
       <Card elevation={1}>
         <CardContent className="py-12 text-center">
@@ -88,6 +44,46 @@ async function SocialingContent() {
       </Card>
     );
   }
+
+  const thumbnails = data?.thumbnails || [];
+  const socialings = data?.socialings || [];
+
+  return (
+    <>
+      {/* 썸네일 캐러셀 */}
+      {thumbnails.length > 0 && (
+        <SocialingThumbnailCarousel thumbnails={thumbnails} />
+      )}
+
+      {/* 소셜링 섹션들 */}
+      <SocialingSection
+        type="CHALLENGE"
+        socialings={socialingsByType.CHALLENGE}
+      />
+      <SocialingSection
+        type="SOCIALING"
+        socialings={socialingsByType.SOCIALING}
+      />
+      <SocialingSection
+        type="EVENT"
+        socialings={socialingsByType.EVENT}
+      />
+
+      {/* 모든 섹션이 비어있는 경우 */}
+      {socialings.length === 0 && (
+        <Card elevation={1}>
+          <CardContent className="py-12 text-center">
+            <p className="text-text-secondary mb-4">
+              등록된 소셜링이 없습니다.
+            </p>
+            <p className="text-sm text-text-tertiary">
+              곧 새로운 소셜링이 추가될 예정입니다.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </>
+  );
 }
 
 function SocialingSkeleton() {
@@ -118,9 +114,7 @@ export default function SocialPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <div className="max-w-5xl mx-auto">
-        <Suspense fallback={<SocialingSkeleton />}>
-          <SocialingContent />
-        </Suspense>
+        <SocialingContent />
       </div>
     </div>
   );
