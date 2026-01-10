@@ -48,21 +48,23 @@ const nextConfig = {
       };
       
       // 추가 안정성 설정
-      config.optimization = {
-        ...config.optimization,
-        // 모듈 ID 생성 방식 변경 (안정성 향상)
-        moduleIds: 'deterministic',
-        // 청크 ID 생성 방식 변경
-        chunkIds: 'deterministic',
-      };
+      if (config.optimization) {
+        config.optimization = {
+          ...config.optimization,
+          // 모듈 ID 생성 방식 변경 (안정성 향상)
+          moduleIds: 'deterministic',
+          // 청크 ID 생성 방식 변경
+          chunkIds: 'deterministic',
+        };
+      }
     }
     return config;
   },
-  // 빌드 출력 최적화
-  experimental: {
-    // 빌드 캐시 최적화
-    optimizeCss: true,
-  },
+  // optimizeCss는 critters 모듈이 필요하여 빌드 오류 발생 가능
+  // 필요시 npm install critters 후 활성화
+  // experimental: {
+  //   optimizeCss: true,
+  // },
 }
 
 module.exports = nextConfig
