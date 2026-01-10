@@ -13,12 +13,12 @@ export default function NotFound() {
           요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button asChild>
-            <Link href="/">홈으로 가기</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/contents">컨텐츠 보기</Link>
-          </Button>
+          <Link href="/">
+            <Button>홈으로 가기</Button>
+          </Link>
+          <Link href="/contents">
+            <Button variant="outline">컨텐츠 보기</Button>
+          </Link>
         </div>
       </div>
     </div>
