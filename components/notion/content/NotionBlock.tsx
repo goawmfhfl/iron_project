@@ -83,14 +83,17 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
 
     case "quote":
       return (
-        <blockquote className="border-l-4 border-primary-500 pl-4 py-2 my-4 italic text-text-secondary bg-surface-elevated rounded-r">
-          <div>
+        <blockquote className="relative my-6 rounded-xl border-l-4 border-primary-500/60 bg-surface-elevated/80 pl-5 pr-5 sm:pl-6 sm:pr-6 py-4 shadow-elevation-1">
+          {/* 인용 내용 */}
+          <div className="text-base text-text-primary leading-7">
             {block.quote?.rich_text && (
-              <p className="mb-2 leading-normal">{renderRichText(block.quote?.rich_text)}</p>
+              <p className="whitespace-pre-wrap text-text-secondary">
+                {renderRichText(block.quote?.rich_text)}
+              </p>
             )}
             {/* 중첩된 children 블록 렌더링 */}
             {block.children && Array.isArray(block.children) && block.children.length > 0 && (
-              <div className="mt-2">
+              <div className="mt-3 pt-3 border-t border-border/30">
                 <NotionRenderer blocks={block.children} contentId={contentId} />
               </div>
             )}
@@ -133,17 +136,16 @@ export function NotionBlock({ block, contentId }: NotionBlockProps) {
         : "이미지";
 
       return (
-        <div className="my-4">
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-transparent">
-            <Image
-              src={imageUrl}
-              alt={imageCaption}
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 896px"
-              onError={handleImageError}
-            />
-          </div>
+        <div className="my-5">
+          <Image
+            src={imageUrl}
+            alt={imageCaption}
+            width={0}
+            height={0}
+            className="block w-full h-auto rounded-2xl border border-border/60 object-contain shadow-elevation-1 ring-1 ring-black/5 transition-transform duration-300 ease-out hover:-translate-y-0.5"
+            sizes="(max-width: 768px) 100vw, 896px"
+            onError={handleImageError}
+          />
           {block.image?.caption && block.image.caption.length > 0 && (
             <p className="text-sm text-text-tertiary text-center mt-2 leading-normal">
               {extractTextFromRichText(block.image.caption)}
